@@ -49,6 +49,12 @@ from backend.app.schemas.evaluation import (
     EvaluationSummary,
     OutcomeEvaluationResponse,
 )
+from backend.app.schemas.memory import (
+    EpisodeCluster,
+    InspectionPriority,
+    ObservationCoverage,
+    SegmentMemorySummary,
+)
 
 __all__ = [
     "AbstentionReason",
@@ -87,4 +93,8 @@ __all__ = [
     "SimulationRunResponse",
     "EvaluationSummary",
     "OutcomeEvaluationResponse",
+    "EpisodeCluster",
+    "InspectionPriority",
+    "ObservationCoverage",
+    "SegmentMemorySummary",
 ]
