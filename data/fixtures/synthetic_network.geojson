@@ -1,0 +1,314 @@
+{
+  "attribution": "RoadMind AI Synthetic Test Network - Deterministic Benchmarks",
+  "data_mode": "synthetic",
+  "features": [
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -73.985,
+            40.748
+          ],
+          [
+            -73.9825,
+            40.749
+          ],
+          [
+            -73.98,
+            40.75
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "seg_corridor_w",
+      "properties": {
+        "access_assumptions": "all_vehicles",
+        "data_mode": "synthetic",
+        "directed_edge_id": "edge_0",
+        "free_flow_speed_mps": 13.89,
+        "functional_class": "arterial",
+        "id": "seg_corridor_w",
+        "is_one_way": false,
+        "length_meters": 1200.0,
+        "name": "Grand Corridor West",
+        "source_node": "node_origin",
+        "target_node": "node_corridor_mid"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -73.98,
+            40.75
+          ],
+          [
+            -73.9775,
+            40.751
+          ],
+          [
+            -73.975,
+            40.752
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "seg_corridor_e",
+      "properties": {
+        "access_assumptions": "all_vehicles",
+        "data_mode": "synthetic",
+        "directed_edge_id": "edge_0",
+        "free_flow_speed_mps": 13.89,
+        "functional_class": "arterial",
+        "id": "seg_corridor_e",
+        "is_one_way": false,
+        "length_meters": 1400.0,
+        "name": "Grand Corridor East",
+        "source_node": "node_corridor_mid",
+        "target_node": "node_destination"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -73.975,
+            40.752
+          ],
+          [
+            -73.9775,
+            40.751
+          ],
+          [
+            -73.98,
+            40.75
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "seg_corridor_e_rev",
+      "properties": {
+        "access_assumptions": "all_vehicles",
+        "data_mode": "synthetic",
+        "directed_edge_id": "edge_0",
+        "free_flow_speed_mps": 13.89,
+        "functional_class": "arterial",
+        "id": "seg_corridor_e_rev",
+        "is_one_way": true,
+        "length_meters": 1400.0,
+        "name": "Grand Corridor East (Inbound)",
+        "source_node": "node_destination",
+        "target_node": "node_corridor_mid"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -73.985,
+            40.748
+          ],
+          [
+            -73.982,
+            40.7492
+          ],
+          [
+            -73.98,
+            40.75
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "seg_corridor_w_express",
+      "properties": {
+        "access_assumptions": "express_only",
+        "data_mode": "synthetic",
+        "directed_edge_id": "edge_express_1",
+        "free_flow_speed_mps": 16.67,
+        "functional_class": "highway",
+        "id": "seg_corridor_w_express",
+        "is_one_way": true,
+        "length_meters": 1150.0,
+        "name": "Grand Corridor West Express",
+        "source_node": "node_origin",
+        "target_node": "node_corridor_mid"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -73.985,
+            40.748
+          ],
+          [
+            -73.983,
+            40.746
+          ],
+          [
+            -73.98,
+            40.745
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "seg_bypass_w",
+      "properties": {
+        "access_assumptions": "all_vehicles",
+        "data_mode": "synthetic",
+        "directed_edge_id": "edge_0",
+        "free_flow_speed_mps": 15.28,
+        "functional_class": "bypass",
+        "id": "seg_bypass_w",
+        "is_one_way": false,
+        "length_meters": 1600.0,
+        "name": "Southern Bypass West",
+        "source_node": "node_origin",
+        "target_node": "node_bypass_mid"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -73.98,
+            40.745
+          ],
+          [
+            -73.977,
+            40.747
+          ],
+          [
+            -73.975,
+            40.752
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "seg_bypass_e",
+      "properties": {
+        "access_assumptions": "all_vehicles",
+        "data_mode": "synthetic",
+        "directed_edge_id": "edge_0",
+        "free_flow_speed_mps": 15.28,
+        "functional_class": "bypass",
+        "id": "seg_bypass_e",
+        "is_one_way": false,
+        "length_meters": 1700.0,
+        "name": "Southern Bypass East",
+        "source_node": "node_bypass_mid",
+        "target_node": "node_destination"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -73.98,
+            40.75
+          ],
+          [
+            -73.979,
+            40.753
+          ],
+          [
+            -73.978,
+            40.756
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "seg_oneway_north",
+      "properties": {
+        "access_assumptions": "one_way_only",
+        "data_mode": "synthetic",
+        "directed_edge_id": "edge_0",
+        "free_flow_speed_mps": 11.11,
+        "functional_class": "local",
+        "id": "seg_oneway_north",
+        "is_one_way": true,
+        "length_meters": 800.0,
+        "name": "Northbound Boulevard (One-Way)",
+        "source_node": "node_corridor_mid",
+        "target_node": "node_hub_north"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -73.98,
+            40.75
+          ],
+          [
+            -73.975,
+            40.7495
+          ],
+          [
+            -73.97,
+            40.749
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "seg_sparse_history",
+      "properties": {
+        "access_assumptions": "all_vehicles",
+        "data_mode": "synthetic",
+        "directed_edge_id": "edge_0",
+        "free_flow_speed_mps": 10.0,
+        "functional_class": "local",
+        "id": "seg_sparse_history",
+        "is_one_way": false,
+        "length_meters": 900.0,
+        "name": "Industrial Spur Road (Sparse Data)",
+        "source_node": "node_corridor_mid",
+        "target_node": "node_stale_zone"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          [
+            -73.96,
+            40.76
+          ],
+          [
+            -73.968,
+            40.756
+          ],
+          [
+            -73.975,
+            40.752
+          ]
+        ],
+        "type": "LineString"
+      },
+      "id": "seg_isolated_out",
+      "properties": {
+        "access_assumptions": "restricted",
+        "data_mode": "synthetic",
+        "directed_edge_id": "edge_0",
+        "free_flow_speed_mps": 13.89,
+        "functional_class": "local",
+        "id": "seg_isolated_out",
+        "is_one_way": true,
+        "length_meters": 2000.0,
+        "name": "Isolated Sector Outflow",
+        "source_node": "node_isolated",
+        "target_node": "node_destination"
+      },
+      "type": "Feature"
+    }
+  ],
+  "graph_version": "v1.0.0",
+  "type": "FeatureCollection"
+}

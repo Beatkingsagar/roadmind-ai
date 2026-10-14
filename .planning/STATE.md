@@ -23,8 +23,8 @@
 ## Roadmap Status Summary
 | Phase | Title | Status | Dependencies |
 | :--- | :--- | :--- | :--- |
-| **Phase 1** | Project Scaffolding & Core Architecture | ⏳ Ready to Plan | None |
-| **Phase 2** | Computer Vision Inference Engine | ⏸️ Queued | Phase 1 |
+| **Phase 1** | Project Scaffolding & Core Architecture | ✅ Completed (27/27 Tests Pass) | None |
+| **Phase 2** | Computer Vision & Core Domain Services | ⏳ Ready to Plan/Execute | Phase 1 |
 | **Phase 3** | Interactive Geospatial Map & Heatmaps | ⏸️ Queued | Phase 1, Phase 2 |
 | **Phase 4** | Incident Triage & Response Dispatch | ⏸️ Queued | Phase 3 |
 | **Phase 5** | Inspection Reports & Analytics | ⏸️ Queued | Phase 3 |
@@ -33,10 +33,9 @@
 ---
 
 ## Blockers & Risks
-- **None currently identified**.
-- Dependencies: Python 3.10+, Node.js (v18+).
+- **None**. All foundational schemas, deterministic benchmark fixtures, SQLite relationships, and temporal replay constraints are fully implemented and verified.
 
 ---
 
 ## Next Immediate Action
-Run `/gsd-plan-phase 1` to generate the detailed implementation plan (`PLAN.md`) for Phase 1 (Project Scaffolding & Core Architecture).
+Proceed to Phase 2: Core Domain Services (Evidence assessment with SHA-256 deduplication and dependency grouping, NetworkX static scenario routing, deterministic recommendations with sensitivity analysis, time-of-week forecasting with abstention, road memory episode clustering).

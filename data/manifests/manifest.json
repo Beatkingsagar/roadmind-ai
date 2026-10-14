@@ -1,0 +1,38 @@
+{
+  "benchmark_fixtures_verified": [
+    "one_way_roads",
+    "parallel_directed_edges",
+    "corridor_and_bypass",
+    "full_closure_alternative",
+    "disconnected_destination",
+    "duplicate_uploaded_evidence",
+    "shared_source_reports",
+    "conflicting_evidence",
+    "distinct_recurring_episodes",
+    "late_arriving_observations",
+    "sparse_forecasting_history",
+    "later_outcome_observation"
+  ],
+  "data_mode": "synthetic",
+  "files": {
+    "seed_fixtures.json": {
+      "checksum_sha256": "39fd68d3569ac0d1ce0a5bcea065e0e034648c99b2187088dac317d8ca505a59",
+      "episode_count": 3,
+      "evaluation_count": 1,
+      "evidence_count": 2,
+      "observation_count": 18,
+      "path": "data/fixtures/seed_fixtures.json",
+      "prediction_count": 2,
+      "report_count": 5
+    },
+    "synthetic_network.geojson": {
+      "checksum_sha256": "ff22eafea107e183886a2e51aa2c5ede322745b3970f3c91fcd80a33fdfe2f6a",
+      "path": "data/fixtures/synthetic_network.geojson",
+      "segment_count": 9
+    }
+  },
+  "generated_at": "2026-10-14T18:39:28.885133+00:00",
+  "graph_version": "v1.0.0",
+  "manifest_version": "1.0.0",
+  "random_seed": 42
+}

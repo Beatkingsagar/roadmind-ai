@@ -1,0 +1,450 @@
+{
+  "data_source": {
+    "checksum": "ff22eafea107e183886a2e51aa2c5ede322745b3970f3c91fcd80a33fdfe2f6a",
+    "coverage": "7 directed roads, 5 junction nodes, 72 hours synthetic history",
+    "data_mode": "synthetic",
+    "geography": "Synthetic Metro Grid - Sector 7",
+    "id": "src_synthetic_sector7_v1",
+    "license_status": "Synthetic Benchmark - Free Internal Use",
+    "limitations": "Synthetic benchmark. No real-world vehicles or sensor calibration.",
+    "name": "Sector 7 Synthetic Traffic Dataset",
+    "origin": "RoadMind AI Deterministic Generator",
+    "retrieval_time": "2026-10-15T08:30:00+00:00"
+  },
+  "episodes": [
+    {
+      "affected_segments": [
+        "seg_corridor_e"
+      ],
+      "assessment_summary": "Corroborated by 2 reports and sensor deceleration. Warning: Report 2 reuses duplicate photo from Report 1 and shares dependency group dep_patrol_fleet_A.",
+      "episode_type": "accident",
+      "first_reported_at": "2026-10-15T08:18:00+00:00",
+      "heuristic_support_score": 0.72,
+      "id": "ep_corridor_accident_01",
+      "last_reported_at": "2026-10-15T08:24:00+00:00",
+      "lifecycle_status": "triaged",
+      "primary_segment_id": "seg_corridor_e",
+      "reviewer_state": "verified",
+      "rubric_version": "rubric_v1.0",
+      "severity_level": "high"
+    },
+    {
+      "affected_segments": [
+        "seg_corridor_w"
+      ],
+      "assessment_summary": "Pothole filled and cold-patched by municipal crew.",
+      "episode_type": "pothole",
+      "first_reported_at": "2026-09-01T10:00:00Z",
+      "heuristic_support_score": 0.85,
+      "id": "ep_pothole_sep_resolved",
+      "last_reported_at": "2026-09-01T10:15:00Z",
+      "lifecycle_status": "resolved",
+      "primary_segment_id": "seg_corridor_w",
+      "reviewer_state": "verified",
+      "rubric_version": "rubric_v1.0",
+      "severity_level": "medium"
+    },
+    {
+      "affected_segments": [
+        "seg_corridor_w"
+      ],
+      "assessment_summary": "Single uncorroborated report of recurring pavement depression.",
+      "episode_type": "pothole",
+      "first_reported_at": "2026-10-14T08:30:00+00:00",
+      "heuristic_support_score": 0.4,
+      "id": "ep_pothole_oct_active",
+      "last_reported_at": "2026-10-14T08:30:00+00:00",
+      "lifecycle_status": "reported",
+      "primary_segment_id": "seg_corridor_w",
+      "reviewer_state": "unreviewed",
+      "rubric_version": "rubric_v1.0",
+      "severity_level": "low"
+    }
+  ],
+  "evaluations": [
+    {
+      "absolute_error_mps": 0.4,
+      "error_speed_mps": 0.4,
+      "evaluated_at": "2026-10-15T09:00:15+00:00",
+      "evaluation_version": "eval_v1.0",
+      "id": "eval_pred_corridor_e_30m",
+      "observation_id": "obs_outcome_corridor_e_0900",
+      "prediction_id": "pred_corridor_e_30m",
+      "within_interval": true
+    }
+  ],
+  "evidence": [
+    {
+      "available_at": "2026-10-15T08:20:00+00:00",
+      "content_hash": "0b6d7911c93ed6149cbc41d20c304a38227b3ff97386c5d101e4ec86da0ea2fe",
+      "duplicate_of_id": null,
+      "file_size_bytes": 56,
+      "id": "ev_accident_orig_01",
+      "is_duplicate": false,
+      "media_type": "image/jpeg",
+      "metadata_claims": {
+        "claimed_gps": [
+          40.751,
+          -73.9775
+        ],
+        "device": "PatrolCam v2"
+      },
+      "perceptual_hash": null,
+      "report_id": "rep_accident_01",
+      "storage_path": "C:\\RoadMind AI\\backend\\storage\\evidence\\0b6d7911c93ed6149cbc41d20c304a38227b3ff97386c5d101e4ec86da0ea2fe.jpg",
+      "submitted_at": "2026-10-15T08:20:00+00:00"
+    },
+    {
+      "available_at": "2026-10-15T08:24:00+00:00",
+      "content_hash": "0b6d7911c93ed6149cbc41d20c304a38227b3ff97386c5d101e4ec86da0ea2fe",
+      "duplicate_of_id": "ev_accident_orig_01",
+      "file_size_bytes": 56,
+      "id": "ev_accident_dup_02",
+      "is_duplicate": true,
+      "media_type": "image/jpeg",
+      "metadata_claims": {
+        "claimed_gps": [
+          40.7512,
+          -73.9773
+        ],
+        "device": "Forwarded File"
+      },
+      "perceptual_hash": null,
+      "report_id": "rep_accident_02_dup",
+      "storage_path": "C:\\RoadMind AI\\backend\\storage\\evidence\\0b6d7911c93ed6149cbc41d20c304a38227b3ff97386c5d101e4ec86da0ea2fe.jpg",
+      "submitted_at": "2026-10-15T08:24:00+00:00"
+    }
+  ],
+  "observations": [
+    {
+      "available_at": "2026-10-15T07:30:15+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_corridor_e_0",
+      "observed_at": "2026-10-15T07:30:00+00:00",
+      "provenance": "synthetic_loop_detector",
+      "quality_score": 0.98,
+      "segment_id": "seg_corridor_e",
+      "unit": "mps",
+      "value": 13.8
+    },
+    {
+      "available_at": "2026-10-15T07:35:15+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_corridor_e_5",
+      "observed_at": "2026-10-15T07:35:00+00:00",
+      "provenance": "synthetic_loop_detector",
+      "quality_score": 0.98,
+      "segment_id": "seg_corridor_e",
+      "unit": "mps",
+      "value": 13.8
+    },
+    {
+      "available_at": "2026-10-15T07:40:15+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_corridor_e_10",
+      "observed_at": "2026-10-15T07:40:00+00:00",
+      "provenance": "synthetic_loop_detector",
+      "quality_score": 0.98,
+      "segment_id": "seg_corridor_e",
+      "unit": "mps",
+      "value": 13.8
+    },
+    {
+      "available_at": "2026-10-15T07:45:15+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_corridor_e_15",
+      "observed_at": "2026-10-15T07:45:00+00:00",
+      "provenance": "synthetic_loop_detector",
+      "quality_score": 0.98,
+      "segment_id": "seg_corridor_e",
+      "unit": "mps",
+      "value": 13.8
+    },
+    {
+      "available_at": "2026-10-15T07:50:15+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_corridor_e_20",
+      "observed_at": "2026-10-15T07:50:00+00:00",
+      "provenance": "synthetic_loop_detector",
+      "quality_score": 0.98,
+      "segment_id": "seg_corridor_e",
+      "unit": "mps",
+      "value": 13.8
+    },
+    {
+      "available_at": "2026-10-15T07:55:15+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_corridor_e_25",
+      "observed_at": "2026-10-15T07:55:00+00:00",
+      "provenance": "synthetic_loop_detector",
+      "quality_score": 0.98,
+      "segment_id": "seg_corridor_e",
+      "unit": "mps",
+      "value": 13.8
+    },
+    {
+      "available_at": "2026-10-15T08:00:15+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_corridor_e_30",
+      "observed_at": "2026-10-15T08:00:00+00:00",
+      "provenance": "synthetic_loop_detector",
+      "quality_score": 0.98,
+      "segment_id": "seg_corridor_e",
+      "unit": "mps",
+      "value": 13.8
+    },
+    {
+      "available_at": "2026-10-15T08:05:15+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_corridor_e_35",
+      "observed_at": "2026-10-15T08:05:00+00:00",
+      "provenance": "synthetic_loop_detector",
+      "quality_score": 0.98,
+      "segment_id": "seg_corridor_e",
+      "unit": "mps",
+      "value": 13.8
+    },
+    {
+      "available_at": "2026-10-15T08:10:15+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_corridor_e_40",
+      "observed_at": "2026-10-15T08:10:00+00:00",
+      "provenance": "synthetic_loop_detector",
+      "quality_score": 0.98,
+      "segment_id": "seg_corridor_e",
+      "unit": "mps",
+      "value": 13.8
+    },
+    {
+      "available_at": "2026-10-15T08:15:15+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_corridor_e_45",
+      "observed_at": "2026-10-15T08:15:00+00:00",
+      "provenance": "synthetic_loop_detector",
+      "quality_score": 0.98,
+      "segment_id": "seg_corridor_e",
+      "unit": "mps",
+      "value": 3.5
+    },
+    {
+      "available_at": "2026-10-15T08:20:15+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_corridor_e_50",
+      "observed_at": "2026-10-15T08:20:00+00:00",
+      "provenance": "synthetic_loop_detector",
+      "quality_score": 0.98,
+      "segment_id": "seg_corridor_e",
+      "unit": "mps",
+      "value": 3.5
+    },
+    {
+      "available_at": "2026-10-15T08:25:15+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_corridor_e_55",
+      "observed_at": "2026-10-15T08:25:00+00:00",
+      "provenance": "synthetic_loop_detector",
+      "quality_score": 0.98,
+      "segment_id": "seg_corridor_e",
+      "unit": "mps",
+      "value": 3.5
+    },
+    {
+      "available_at": "2026-10-15T08:45:00+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_late_arriving_01",
+      "observed_at": "2026-10-15T08:15:00+00:00",
+      "provenance": "delayed_fleet_upload",
+      "quality_score": 0.9,
+      "segment_id": "seg_corridor_e",
+      "unit": "mps",
+      "value": 4.1
+    },
+    {
+      "available_at": "2026-10-15T08:00:10+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_bypass_w_30",
+      "observed_at": "2026-10-15T08:00:00+00:00",
+      "provenance": "synthetic_camera_radar",
+      "quality_score": 0.99,
+      "segment_id": "seg_bypass_w",
+      "unit": "mps",
+      "value": 15.2
+    },
+    {
+      "available_at": "2026-10-15T08:10:10+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_bypass_w_20",
+      "observed_at": "2026-10-15T08:10:00+00:00",
+      "provenance": "synthetic_camera_radar",
+      "quality_score": 0.99,
+      "segment_id": "seg_bypass_w",
+      "unit": "mps",
+      "value": 15.2
+    },
+    {
+      "available_at": "2026-10-15T08:20:10+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_bypass_w_10",
+      "observed_at": "2026-10-15T08:20:00+00:00",
+      "provenance": "synthetic_camera_radar",
+      "quality_score": 0.99,
+      "segment_id": "seg_bypass_w",
+      "unit": "mps",
+      "value": 15.2
+    },
+    {
+      "available_at": "2026-10-11T08:30:00+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_sparse_01",
+      "observed_at": "2026-10-11T08:30:00+00:00",
+      "provenance": "infrequent_survey",
+      "quality_score": 0.5,
+      "segment_id": "seg_sparse_history",
+      "unit": "mps",
+      "value": 10.0
+    },
+    {
+      "available_at": "2026-10-15T09:00:10+00:00",
+      "data_mode": "synthetic",
+      "id": "obs_outcome_corridor_e_0900",
+      "observed_at": "2026-10-15T09:00:00+00:00",
+      "provenance": "synthetic_loop_detector",
+      "quality_score": 0.99,
+      "segment_id": "seg_corridor_e",
+      "unit": "mps",
+      "value": 4.8
+    }
+  ],
+  "predictions": [
+    {
+      "abstention_reason": null,
+      "confidence_level": 0.9,
+      "data_mode": "synthetic",
+      "horizon_minutes": 30,
+      "id": "pred_corridor_e_30m",
+      "input_snapshot_reference": "snapshot_20261015T083000Z",
+      "interval_lower_mps": 3.8,
+      "interval_upper_mps": 6.8,
+      "issue_time": "2026-10-15T08:30:00+00:00",
+      "model_version": "historical_median_v1",
+      "predicted_speed_mps": 5.2,
+      "segment_id": "seg_corridor_e",
+      "target_time": "2026-10-15T09:00:00+00:00"
+    },
+    {
+      "abstention_reason": "INSUFFICIENT_HISTORY",
+      "confidence_level": 0.9,
+      "data_mode": "synthetic",
+      "horizon_minutes": 30,
+      "id": "pred_sparse_hist_30m",
+      "input_snapshot_reference": "snapshot_20261015T083000Z",
+      "interval_lower_mps": null,
+      "interval_upper_mps": null,
+      "issue_time": "2026-10-15T08:30:00+00:00",
+      "model_version": "historical_median_v1",
+      "predicted_speed_mps": null,
+      "segment_id": "seg_sparse_history",
+      "target_time": "2026-10-15T09:00:00+00:00"
+    }
+  ],
+  "reference_epoch": "2026-10-15T08:30:00+00:00",
+  "reports": [
+    {
+      "available_at": "2026-10-15T08:20:00+00:00",
+      "claimed_event_time": "2026-10-15T08:18:00+00:00",
+      "data_mode": "user_submitted",
+      "dependency_group_id": "dep_patrol_fleet_A",
+      "description": "Multi-car rear-end collision blocking left lane.",
+      "episode_id": "ep_corridor_accident_01",
+      "id": "rep_accident_01",
+      "idempotency_key": "idemp_rep_accident_01",
+      "incident_type": "accident",
+      "latitude": 40.751,
+      "location_description": "Grand Corridor East near 5th Cross",
+      "longitude": -73.9775,
+      "reporter_reference": "patrol_car_14",
+      "segment_id": "seg_corridor_e",
+      "submitted_at": "2026-10-15T08:20:00+00:00"
+    },
+    {
+      "available_at": "2026-10-15T08:24:00+00:00",
+      "claimed_event_time": "2026-10-15T08:22:00+00:00",
+      "data_mode": "user_submitted",
+      "dependency_group_id": "dep_patrol_fleet_A",
+      "description": "Confirming collision on Corridor East. Severe backup forming.",
+      "episode_id": "ep_corridor_accident_01",
+      "id": "rep_accident_02_dup",
+      "idempotency_key": "idemp_rep_accident_02",
+      "incident_type": "accident",
+      "latitude": 40.7512,
+      "location_description": "Grand Corridor East at Mile 2",
+      "longitude": -73.9773,
+      "reporter_reference": "patrol_car_19",
+      "segment_id": "seg_corridor_e",
+      "submitted_at": "2026-10-15T08:24:00+00:00"
+    },
+    {
+      "available_at": "2026-10-15T08:25:00+00:00",
+      "claimed_event_time": "2026-10-15T09:15:00+00:00",
+      "data_mode": "user_submitted",
+      "dependency_group_id": null,
+      "description": "Massive total standstill gridlock on Bypass West.",
+      "episode_id": null,
+      "id": "rep_conflict_01",
+      "idempotency_key": "idemp_rep_conflict_01",
+      "incident_type": "stall",
+      "latitude": 40.746,
+      "location_description": "Bypass West Ramp",
+      "longitude": -73.983,
+      "reporter_reference": "unverified_bot_99",
+      "segment_id": "seg_bypass_w",
+      "submitted_at": "2026-10-15T08:25:00+00:00"
+    },
+    {
+      "available_at": "2026-09-01T10:15:00Z",
+      "claimed_event_time": "2026-09-01T10:00:00Z",
+      "data_mode": "user_submitted",
+      "dependency_group_id": "dep_dept_transport",
+      "description": "Deep asphalt depression in right lane.",
+      "episode_id": "ep_pothole_sep_resolved",
+      "id": "rep_pothole_past",
+      "idempotency_key": "idemp_rep_pothole_past",
+      "incident_type": "pothole",
+      "latitude": 40.7485,
+      "location_description": "Corridor West Near Origin Junction",
+      "longitude": -73.9835,
+      "reporter_reference": "maintenance_inspector_02",
+      "segment_id": "seg_corridor_w",
+      "submitted_at": "2026-09-01T10:15:00Z"
+    },
+    {
+      "available_at": "2026-10-14T09:30:00+00:00",
+      "claimed_event_time": "2026-10-14T08:30:00+00:00",
+      "data_mode": "user_submitted",
+      "dependency_group_id": null,
+      "description": "New sharp pothole reopened at same junction.",
+      "episode_id": "ep_pothole_oct_active",
+      "id": "rep_pothole_recent",
+      "idempotency_key": "idemp_rep_pothole_recent",
+      "incident_type": "pothole",
+      "latitude": 40.7486,
+      "location_description": "Corridor West Near Origin Junction",
+      "longitude": -73.9834,
+      "reporter_reference": "citizen_mobile_usr81",
+      "segment_id": "seg_corridor_w",
+      "submitted_at": "2026-10-14T09:30:00+00:00"
+    }
+  ],
+  "reviews": [
+    {
+      "available_at": "2026-10-15T08:26:00+00:00",
+      "decision": "verified",
+      "episode_id": "ep_corridor_accident_01",
+      "id": "rev_corridor_01",
+      "previous_state": "unreviewed",
+      "reason": "Speed sensor drop to 3.5 mps matches reported collision location.",
+      "recorded_at": "2026-10-15T08:26:00+00:00",
+      "reviewer_reference": "traffic_op_lead_sagar"
+    }
+  ]
+}

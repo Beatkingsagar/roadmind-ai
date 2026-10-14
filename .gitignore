@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+pytest-cache-files-*/
+*.db
+backend/roadmind.db
+.python_packages/
+.venv/
+
+# Private evidence storage (do not commit uploaded media)
+backend/storage/evidence/*
+!backend/storage/evidence/.gitkeep
+
+# Node / Web
+node_modules/
+dist/
+.bun/
+
+# Environment & OS
+.env
+.DS_Store
+Thumbs.db
