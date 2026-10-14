@@ -1,0 +1,17 @@
+{
+  "mode": "standard",
+  "planning_depth": "thorough",
+  "research": true,
+  "plan_check": true,
+  "verifier": true,
+  "branching": false,
+  "model_profile": "quality",
+  "project_name": "RoadMind AI",
+  "tech_stack": {
+    "frontend": "React (Vite, TypeScript, Leaflet/OpenStreetMap, Lucide Icons, Modern CSS)",
+    "backend": "Python (FastAPI, Uvicorn, Pydantic v2)",
+    "ai_engine": "Computer Vision (YOLOv8/ONNX/OpenCV) for road distress & pothole detection + heuristic traffic anomaly detection",
+    "geospatial": "GeoJSON, Leaflet heatmaps, marker clustering",
+    "database": "SQLite / JSON datastore with spatial indexing"
+  }
+}
