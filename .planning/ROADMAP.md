@@ -18,9 +18,8 @@ graph TD
 | :--- | :--- | :---: | :---: | :--- |
 | **Phase 1** | Foundation, Data Contracts & Deterministic Fixtures | ✅ Completed | 27/27 | SQLAlchemy models, Pydantic v2 schemas, SQLite database, GeoJSON network, seed pipeline (`pipelines/ingest/seed.py`), 12 benchmark fixtures with SHA-256 manifest. |
 | **Phase 2** | Core Domain Services & Independent Verification | ✅ Completed | 30/30 | Evidence assessment engine, NetworkX scenario router, assumption-sensitive recommendation engine, forecasting engine (persistence & median), road memory & inspection priority. |
-| **Phase 3** | FastAPI Backend, API Endpoints, Persistence & Replay | ✅ Completed | 16/16 | REST endpoints connecting domain services, temporal replay filtering, server-side SHA-256 evidence hashing, idempotency protection, reviewer authorization boundaries, and 16 integration tests. |
-| **Phase 4** | Interactive Frontend Dashboard & Scenario Simulation UI | ⏳ Next Up | — | React / Vite / TypeScript map UI, scenario comparison controls, inspector panel. |
-| **Phase 5** | End-to-End Verification & Documentation Polish | ⏸️ Queued | — | Integration verification, UAT, submission documentation. |
+| **Phase 4** | Interactive Frontend Dashboard & Scenario Simulation UI | ✅ Completed | 8/8 | React 19/TS/Vite web app, Leaflet vector map, From/Dest route planner, 3-way scenario simulations, citizen intake, operator review, Recharts forecasting & memory priorities. |
+| **Phase 5** | End-to-End Verification & Documentation Polish | ⏳ Next Up | — | End-to-end integration verification, presentation demo script, submission packaging. |
 
 ---
 
@@ -73,14 +72,17 @@ graph TD
 
 ## Phase 4: Interactive Frontend Dashboard & Scenario Simulation UI
 - **Objective**: Build a modern, reactive web UI for traffic operators and citizens connecting to the `/api/v1` backend.
-- **Key Tasks**:
-  1. Interactive vector map rendering network topology and congestion states.
-  2. Temporal replay slider driving `?at=...` across all map elements.
-  3. Scenario simulation panel comparing Baseline, Slowdown, and Closure.
-  4. Citizen report submission modal with media upload and client preview.
-  5. Operator review workspace with audit trail and inspection priority list.
+- **Verification Gate**:
+  - `bun run tsc -b` passes with 0 errors.
+  - `bun test` passes 8/8 tests.
+  - Production bundle generated cleanly (`dist/` built in 1.18s).
+  - All 9 application workspaces fully interactive and connected to real endpoints.
 
 ---
 
-## Phase 5: End-to-End Verification & Polish
+## Phase 5: End-to-End Verification, Live Demo Script & Polish
 - **Objective**: Run complete end-to-end user journeys, benchmark response times, and polish presentation materials for NEXATHON 2026.
+- **Key Tasks**:
+  1. Full-stack verification with live FastAPI backend on `:8000` and Vite dev server on `:5173`.
+  2. Document 3-minute hackathon judge walkthrough script.
+  3. Final submission packaging.
