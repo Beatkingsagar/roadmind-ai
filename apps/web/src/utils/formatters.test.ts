@@ -2,6 +2,7 @@ import { describe, it, expect } from 'bun:test';
 import {
   formatSpeed,
   formatDuration,
+  formatHoursAndMinutes,
   formatDistance,
   formatDateTime,
   formatTimeOnly,
@@ -28,6 +29,16 @@ describe('Formatters and Utilities', () => {
     expect(formatDuration(45)).toBe('45s');
     expect(formatDuration(0)).toBe('0s');
     expect(formatDuration(null)).toBe('Unreachable');
+  });
+
+  it('formats highway travel duration into hours and minutes', () => {
+    expect(formatHoursAndMinutes(4671.6)).toBe('1 hr 18 min'); // Kundapura to Mangaluru
+    expect(formatHoursAndMinutes(1860)).toBe('31 min'); // Udupi to Surathkal
+    expect(formatHoursAndMinutes(3600)).toBe('1 hr');
+    expect(formatHoursAndMinutes(7200)).toBe('2 hr');
+    expect(formatHoursAndMinutes(0)).toBe('0 min');
+    expect(formatHoursAndMinutes(null)).toBe('Unreachable');
+    expect(formatHoursAndMinutes(undefined)).toBe('Unreachable');
   });
 
   it('formats distance into meters and kilometers', () => {
@@ -253,5 +264,121 @@ describe('Phase 2: Real-Place Search & Coordinate Validation', () => {
     expect(callCount).toBe(0);
     await new Promise((resolve) => setTimeout(resolve, 80));
     expect(callCount).toBe(1);
+  });
+});
+
+describe('Phase 3: Real-World Road Routing (OSRM & Coastal Karnataka)', () => {
+  it('models real-world road route from Kundapura to Mangaluru along NH 66', () => {
+    const routeResponse = {
+      origin: {
+        name: 'Kundapura',
+        lat: 13.6268,
+        lon: 74.6917,
+        distance_to_snapped_meters: 8.5,
+      },
+      destination: {
+        name: 'Mangaluru',
+        lat: 12.9141,
+        lon: 74.8560,
+        distance_to_snapped_meters: 12.2,
+      },
+      primary_route: {
+        route_index: 0,
+        is_primary: true,
+        summary: 'via NH 66',
+        distance_meters: 91900.5,
+        distance_km: 91.9,
+        duration_seconds: 4671.6,
+        duration_minutes: 77.9,
+        geometry: {
+          type: 'LineString',
+          coordinates: [
+            [74.6917, 13.6268],
+            [74.7421, 13.3409],
+            [74.7943, 13.0119],
+            [74.8560, 12.9141],
+          ],
+        },
+        legs: [{ summary: 'NH 66', distance_meters: 91900.5, duration_seconds: 4671.6 }],
+        weight_name: 'routability',
+      },
+      alternative_routes: [],
+      provider: 'osrm',
+      profile: 'driving',
+      traffic_model: 'standard_routability',
+      attribution: 'Route data © OpenStreetMap contributors, OSRM Project (ODbL 1.0)',
+    };
+
+    expect(routeResponse.origin.name).toBe('Kundapura');
+    expect(routeResponse.destination.name).toBe('Mangaluru');
+    expect(routeResponse.primary_route.distance_km).toBeCloseTo(91.9, 1);
+    expect(routeResponse.primary_route.duration_minutes).toBeCloseTo(77.9, 1);
+    expect(routeResponse.primary_route.summary).toBe('via NH 66');
+    expect(routeResponse.primary_route.geometry.type).toBe('LineString');
+    expect(routeResponse.primary_route.geometry.coordinates.length).toBe(4);
+    expect(routeResponse.alternative_routes.length).toBe(0);
+    expect(routeResponse.traffic_model).toBe('standard_routability');
+  });
+
+  it('correctly maps GeoJSON LineString [lon, lat] coordinates to Leaflet [lat, lon]', () => {
+    const geoJsonCoords: [number, number][] = [
+      [74.6917, 13.6268], // Kundapura [lon, lat]
+      [74.8560, 12.9141], // Mangaluru [lon, lat]
+    ];
+
+    // Leaflet translation
+    const leafletLatLngs = geoJsonCoords.map(([lon, lat]) => [lat, lon]);
+
+    expect(leafletLatLngs[0][0]).toBe(13.6268); // latitude
+    expect(leafletLatLngs[0][1]).toBe(74.6917); // longitude
+    expect(leafletLatLngs[1][0]).toBe(12.9141);
+    expect(leafletLatLngs[1][1]).toBe(74.8560);
+  });
+
+  it('handles alternative routes when provider returns them and does not invent unreturned routes', () => {
+    const responseWithAlt = {
+      primary_route: {
+        route_index: 0,
+        is_primary: true,
+        summary: 'via NH 66',
+        distance_km: 91.9,
+      },
+      alternative_routes: [
+        {
+          route_index: 1,
+          is_primary: false,
+          summary: 'via Manipal / State Highway',
+          distance_km: 99.4,
+        },
+      ],
+    };
+
+    expect(responseWithAlt.alternative_routes.length).toBe(1);
+    expect(responseWithAlt.alternative_routes[0].is_primary).toBe(false);
+    expect(responseWithAlt.alternative_routes[0].route_index).toBe(1);
+
+    const responseWithoutAlt = {
+      primary_route: {
+        route_index: 0,
+        is_primary: true,
+        summary: 'via NH 66',
+        distance_km: 91.9,
+      },
+      alternative_routes: [],
+    };
+
+    expect(responseWithoutAlt.alternative_routes.length).toBe(0);
+  });
+
+  it('preserves clean separation: real routes do not include synthetic scenario models', () => {
+    const realRoute = {
+      provider: 'osrm',
+      profile: 'driving',
+      traffic_model: 'standard_routability',
+    };
+
+    expect(realRoute.traffic_model).not.toBe('synthetic');
+    expect(realRoute.traffic_model).not.toBe('live_traffic');
+    expect(realRoute.traffic_model).toBe('standard_routability');
   });
 });

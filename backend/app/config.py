@@ -51,6 +51,11 @@ class Settings(BaseModel):
     )
     cors_origins: list[str] = ["*"]
 
+    # External Provider URLs
+    osrm_routing_url: str = Field(
+        default_factory=lambda: os.getenv("OSRM_ROUTING_URL", "https://router.project-osrm.org")
+    )
+
     def ensure_directories(self) -> None:
         """Create required storage and data directories if they do not exist."""
         self.evidence_storage_dir.mkdir(parents=True, exist_ok=True)

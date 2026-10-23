@@ -8,10 +8,11 @@ import {
   Globe,
   FlaskConical,
   CheckCircle2,
-  Clock,
+  RefreshCw,
 } from 'lucide-react';
 import { useRoute } from '../../context/RouteContext';
 import { SUPPORTED_NODES } from '../../utils/constants';
+import { formatDistance, formatHoursAndMinutes } from '../../utils/formatters';
 import { PlaceSearchInput } from './PlaceSearchInput';
 
 export const RoutePlanner: React.FC = () => {
@@ -34,6 +35,13 @@ export const RoutePlanner: React.FC = () => {
     setRealOrigin,
     setRealDestination,
     swapRealPlaces,
+    realRouteResponse,
+    selectedRealRouteIndex,
+    setSelectedRealRouteIndex,
+    isCalculatingRealRoute,
+    realRouteError,
+    calculateRealRoute,
+    clearRealRoute,
   } = useRoute();
 
   const handleCalculateSynthetic = (e: React.FormEvent) => {
@@ -176,66 +184,86 @@ export const RoutePlanner: React.FC = () => {
             exampleSuggestions={['Mangaluru', 'SDIT Kenjar', 'Manipal']}
           />
 
-          {/* Selected Corridor Status Summary Card */}
-          {(realOrigin || realDestination) && (
+          {/* Action & Status Row */}
+          {realRouteError && (
             <div
               style={{
-                background: 'var(--bg-tertiary)',
-                border: '1px solid var(--border-medium)',
-                borderRadius: 'var(--radius-md)',
-                padding: '12px 16px',
-                fontSize: '12px',
                 display: 'flex',
-                flexDirection: 'column',
+                alignItems: 'center',
                 gap: '8px',
+                padding: '10px 14px',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid var(--status-red)',
+                color: 'var(--status-red)',
+                fontSize: '12px',
               }}
             >
-              <div style={{ fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <CheckCircle2 size={15} color="var(--status-emerald)" />
-                <span>Geographic Selection Verified</span>
-              </div>
+              <AlertCircle size={16} />
+              <span>{realRouteError}</span>
+            </div>
+          )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '6px 10px', alignItems: 'center' }}>
-                <span style={{ fontWeight: 600, color: '#10b981' }}>Origin:</span>
-                <span style={{ color: 'var(--text-secondary)' }}>
-                  {realOrigin ? (
-                    <>
-                      <strong>{realOrigin.name}</strong> ({realOrigin.lat.toFixed(4)}° N, {realOrigin.lon.toFixed(4)}° E)
-                    </>
-                  ) : (
-                    <em style={{ color: 'var(--text-muted)' }}>Not selected</em>
-                  )}
-                </span>
-
-                <span style={{ fontWeight: 600, color: '#3b82f6' }}>Destination:</span>
-                <span style={{ color: 'var(--text-secondary)' }}>
-                  {realDestination ? (
-                    <>
-                      <strong>{realDestination.name}</strong> ({realDestination.lat.toFixed(4)}° N, {realDestination.lon.toFixed(4)}° E)
-                    </>
-                  ) : (
-                    <em style={{ color: 'var(--text-muted)' }}>Not selected</em>
-                  )}
-                </span>
-              </div>
-
-              {realOrigin && realDestination && (
-                <div
-                  style={{
-                    borderTop: '1px solid var(--border-subtle)',
-                    paddingTop: '8px',
-                    marginTop: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    color: 'var(--primary-400)',
-                    fontSize: '11px',
+          {/* Quick Corridor Selection Chips if neither is selected */}
+          {!realOrigin && !realDestination && !realRouteResponse && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
+                QUICK CORRIDOR DEMOS:
+              </span>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  id="btn-quick-kundapura-mangaluru"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setRealOrigin({
+                      id: 'cache_kundapura',
+                      name: 'Kundapura',
+                      displayName: 'Kundapura, Udupi District, Karnataka, India',
+                      lat: 13.6268,
+                      lon: 74.6917,
+                      source: 'verified_cache',
+                    });
+                    setRealDestination({
+                      id: 'cache_mangaluru',
+                      name: 'Mangaluru',
+                      displayName: 'Mangaluru, Dakshina Kannada, Karnataka, India',
+                      lat: 12.9141,
+                      lon: 74.8560,
+                      source: 'verified_cache',
+                    });
                   }}
+                  style={{ fontSize: '11px', padding: '4px 10px', borderRadius: 'var(--radius-full)' }}
                 >
-                  <Clock size={13} />
-                  <span>Phase 2 Complete: Coordinates confirmed. Real road routing along NH 66 will be calculated in Phase 3.</span>
-                </div>
-              )}
+                  Kundapura ➔ Mangaluru (NH 66)
+                </button>
+                <button
+                  type="button"
+                  id="btn-quick-udupi-surathkal"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setRealOrigin({
+                      id: 'cache_udupi',
+                      name: 'Udupi',
+                      displayName: 'Udupi, Udupi District, Karnataka, India',
+                      lat: 13.3409,
+                      lon: 74.7421,
+                      source: 'verified_cache',
+                    });
+                    setRealDestination({
+                      id: 'cache_surathkal',
+                      name: 'Surathkal',
+                      displayName: 'Surathkal, Mangaluru, Dakshina Kannada, Karnataka, India',
+                      lat: 13.0119,
+                      lon: 74.7943,
+                      source: 'verified_cache',
+                    });
+                  }}
+                  style={{ fontSize: '11px', padding: '4px 10px', borderRadius: 'var(--radius-full)' }}
+                >
+                  Udupi ➔ Surathkal
+                </button>
+              </div>
             </div>
           )}
 
@@ -243,36 +271,236 @@ export const RoutePlanner: React.FC = () => {
           <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
             <button
               type="button"
+              id="btn-clear-real-places"
               className="btn btn-secondary"
               onClick={() => {
                 setRealOrigin(null);
                 setRealDestination(null);
+                clearRealRoute();
               }}
-              disabled={!realOrigin && !realDestination}
+              disabled={!realOrigin && !realDestination && !realRouteResponse}
               style={{ flex: 1, padding: '9px 14px', fontSize: '12px' }}
             >
-              Clear Places
+              Clear
             </button>
             <button
               type="button"
+              id="btn-calculate-real-route"
               className="btn btn-primary"
-              disabled={!realOrigin || !realDestination}
-              title={
-                realOrigin && realDestination
-                  ? 'Ready for Phase 3 Road Routing'
-                  : 'Select both origin and destination places first'
-              }
+              onClick={calculateRealRoute}
+              disabled={!realOrigin || !realDestination || isCalculatingRealRoute}
               style={{
                 flex: 2,
                 padding: '9px 14px',
                 fontSize: '12px',
                 fontWeight: 600,
-                opacity: realOrigin && realDestination ? 1 : 0.6,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
               }}
             >
-              <span>{realOrigin && realDestination ? 'Ready for Phase 3 Route Engine' : 'Select Origin & Destination'}</span>
+              {isCalculatingRealRoute ? (
+                <>
+                  <RefreshCw size={14} className="spin" />
+                  <span>Calculating Route via OSRM...</span>
+                </>
+              ) : (
+                <>
+                  <Play size={14} />
+                  <span>Calculate Road Route</span>
+                </>
+              )}
             </button>
           </div>
+
+          {/* ================================================================= */}
+          {/* CALCULATED ROAD ROUTE METRICS & ALTERNATIVES (PHASE 3)             */}
+          {/* ================================================================= */}
+          {realRouteResponse && (
+            <div
+              id="real-route-results-card"
+              style={{
+                marginTop: '8px',
+                background: 'var(--bg-tertiary)',
+                border: '1px solid var(--border-medium)',
+                borderRadius: 'var(--radius-md)',
+                padding: '14px 16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+              }}
+            >
+              {/* Header & Status */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <CheckCircle2 size={16} color="var(--status-emerald)" />
+                  <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>
+                    Verified Road Route ({realRouteResponse.profile})
+                  </strong>
+                </div>
+                <span
+                  style={{
+                    padding: '2px 8px',
+                    borderRadius: 'var(--radius-full)',
+                    fontSize: '10px',
+                    fontWeight: 600,
+                    background: 'rgba(16, 185, 129, 0.15)',
+                    color: '#10b981',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                  }}
+                >
+                  Provider: {realRouteResponse.provider.toUpperCase()}
+                </span>
+              </div>
+
+              {/* Alternative Route Tabs (if provider returned alternatives) */}
+              {realRouteResponse.alternative_routes.length > 0 && (
+                <div style={{ display: 'flex', gap: '6px', background: 'var(--bg-surface)', padding: '4px', borderRadius: 'var(--radius-sm)' }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRealRouteIndex(0)}
+                    style={{
+                      flex: 1,
+                      padding: '6px 8px',
+                      borderRadius: 'var(--radius-sm)',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      border: 'none',
+                      background: selectedRealRouteIndex === 0 ? 'var(--primary-600)' : 'transparent',
+                      color: selectedRealRouteIndex === 0 ? '#ffffff' : 'var(--text-secondary)',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    Primary: {realRouteResponse.primary_route.summary || 'Main Route'}
+                  </button>
+                  {realRouteResponse.alternative_routes.map((alt, idx) => {
+                    const altIdx = idx + 1;
+                    return (
+                      <button
+                        key={alt.route_index}
+                        type="button"
+                        onClick={() => setSelectedRealRouteIndex(altIdx)}
+                        style={{
+                          flex: 1,
+                          padding: '6px 8px',
+                          borderRadius: 'var(--radius-sm)',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          border: 'none',
+                          background: selectedRealRouteIndex === altIdx ? 'var(--primary-600)' : 'transparent',
+                          color: selectedRealRouteIndex === altIdx ? '#ffffff' : 'var(--text-secondary)',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        Alt {altIdx}: {alt.summary || `Route ${altIdx}`}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Active Route Details */}
+              {(() => {
+                const activeRoute =
+                  selectedRealRouteIndex === 0
+                    ? realRouteResponse.primary_route
+                    : realRouteResponse.alternative_routes[selectedRealRouteIndex - 1] ||
+                      realRouteResponse.primary_route;
+
+                return (
+                  <>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                        gap: '10px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          background: 'var(--bg-surface)',
+                          padding: '10px 12px',
+                          borderRadius: 'var(--radius-sm)',
+                          border: '1px solid var(--border-subtle)',
+                        }}
+                      >
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          Road Distance
+                        </span>
+                        <div style={{ fontSize: '18px', fontWeight: 700, color: '#10b981', marginTop: '2px' }}>
+                          {activeRoute.distance_km} km
+                        </div>
+                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
+                          {formatDistance(activeRoute.distance_meters)}
+                        </span>
+                      </div>
+
+                      <div
+                        style={{
+                          background: 'var(--bg-surface)',
+                          padding: '10px 12px',
+                          borderRadius: 'var(--radius-sm)',
+                          border: '1px solid var(--border-subtle)',
+                        }}
+                      >
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          Est. Duration
+                        </span>
+                        <div style={{ fontSize: '18px', fontWeight: 700, color: '#38bdf8', marginTop: '2px' }}>
+                          {formatHoursAndMinutes(activeRoute.duration_seconds)}
+                        </div>
+                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
+                          ~{activeRoute.duration_minutes} mins
+                        </span>
+                      </div>
+
+                      <div
+                        style={{
+                          background: 'var(--bg-surface)',
+                          padding: '10px 12px',
+                          borderRadius: 'var(--radius-sm)',
+                          border: '1px solid var(--border-subtle)',
+                        }}
+                      >
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          Corridor
+                        </span>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }} title={activeRoute.summary}>
+                          {activeRoute.summary || 'Direct Highway'}
+                        </div>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                          {activeRoute.geometry.coordinates.length} waypoints
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Standard Routability Notice */}
+                    <div
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: 'var(--radius-sm)',
+                        background: 'rgba(56, 189, 248, 0.08)',
+                        border: '1px solid rgba(56, 189, 248, 0.2)',
+                        fontSize: '11px',
+                        color: 'var(--text-secondary)',
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      <strong style={{ color: '#38bdf8' }}>Notice:</strong> Standard road network routability estimate ({realRouteResponse.traffic_model}). Does not reflect live traffic conditions or synthetic scenario overrides.
+                    </div>
+
+                    {/* Attribution */}
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'right' }}>
+                      {realRouteResponse.attribution}
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          )}
         </div>
       ) : (
         /* =================================================================== */

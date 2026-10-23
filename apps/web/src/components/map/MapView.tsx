@@ -50,6 +50,8 @@ export const MapView: React.FC = () => {
     setPickMode,
     realOrigin,
     realDestination,
+    realRouteResponse,
+    selectedRealRouteIndex,
   } = useRoute();
 
   const [networkData, setNetworkData] = useState<NetworkGeoJSONResponse | null>(null);
@@ -281,8 +283,76 @@ export const MapView: React.FC = () => {
         destMarker.addTo(landmarksGroup);
       }
 
-      // Fit map viewport to encompass both points when both are selected
-      if (realOrigin && realDestination) {
+      // Draw Calculated Real Road Route Polyline (Phase 3)
+      if (realRouteResponse) {
+        const allRoutes = [realRouteResponse.primary_route, ...realRouteResponse.alternative_routes];
+        const activeRoute = allRoutes[selectedRealRouteIndex] || realRouteResponse.primary_route;
+
+        // Render alternative routes first (if any) as dashed secondary lines
+        if (allRoutes.length > 1) {
+          allRoutes.forEach((route, idx) => {
+            if (idx === selectedRealRouteIndex) return;
+            const altLatLngs: L.LatLngExpression[] = route.geometry.coordinates.map(([lon, lat]) => [lat, lon]);
+            const altPolyline = L.polyline(altLatLngs, {
+              color: '#38bdf8',
+              weight: 4,
+              opacity: 0.5,
+              dashArray: '6, 8',
+            });
+            altPolyline.bindPopup(`
+              <div style="font-family: inherit; font-size: 12px; min-width: 200px;">
+                <div style="color: #38bdf8; font-weight: 700; margin-bottom: 2px;">
+                  🛣️ Alternative Route (${idx})
+                </div>
+                <strong>${route.summary || 'Alternative Corridor'}</strong>
+                <div style="margin: 4px 0; color: var(--text-secondary); font-size: 11px;">
+                  Distance: <strong>${route.distance_km} km</strong> • Duration: <strong>~${route.duration_minutes} min</strong>
+                </div>
+                <div style="font-size: 10px; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 4px;">
+                  Standard Routability (OSRM)
+                </div>
+              </div>
+            `);
+            altPolyline.addTo(routeGroup);
+          });
+        }
+
+        // Render selected / primary route with high-contrast emerald stroke
+        const activeLatLngs: L.LatLngExpression[] = activeRoute.geometry.coordinates.map(([lon, lat]) => [lat, lon]);
+        const activePolyline = L.polyline(activeLatLngs, {
+          color: '#10b981',
+          weight: 6,
+          opacity: 0.9,
+          lineJoin: 'round',
+          lineCap: 'round',
+        });
+        activePolyline.bindPopup(`
+          <div style="font-family: inherit; font-size: 12px; min-width: 220px;">
+            <div style="color: #10b981; font-weight: 700; margin-bottom: 2px;">
+              🛣️ ${selectedRealRouteIndex === 0 ? 'Primary Route' : `Alternative Route ${selectedRealRouteIndex}`}
+            </div>
+            <strong style="font-size: 13px;">${activeRoute.summary || 'Direct Road Route'}</strong>
+            <div style="margin: 6px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <div>
+                <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">DISTANCE</span>
+                <div style="font-weight: 700; color: #10b981; font-size: 14px;">${activeRoute.distance_km} km</div>
+              </div>
+              <div>
+                <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">EST. DURATION</span>
+                <div style="font-weight: 700; color: #38bdf8; font-size: 14px;">~${activeRoute.duration_minutes} min</div>
+              </div>
+            </div>
+            <div style="font-size: 10px; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 4px;">
+              Standard Routability (${realRouteResponse.provider.toUpperCase()} Driving)
+            </div>
+          </div>
+        `);
+        activePolyline.addTo(routeGroup);
+
+        // Fit map viewport to encompass the calculated road route polyline
+        map.fitBounds(activePolyline.getBounds(), { padding: [50, 50] });
+      } else if (realOrigin && realDestination) {
+        // Fit map viewport to encompass origin and destination points
         const bounds = L.latLngBounds(
           [realOrigin.lat, realOrigin.lon],
           [realDestination.lat, realDestination.lon]
@@ -508,6 +578,8 @@ export const MapView: React.FC = () => {
     pickMode,
     realOrigin,
     realDestination,
+    realRouteResponse,
+    selectedRealRouteIndex,
     setOriginNode,
     setDestinationNode,
     setPickMode,

@@ -59,6 +59,11 @@ from backend.app.schemas.memory import (
 from backend.app.schemas.real_map import (
     PlaceSearchResult,
     PlaceSearchResponse,
+    RealRoadRoute,
+    RealRouteLeg,
+    RealRouteRequest,
+    RealRouteResponse,
+    RealRouteWaypoint,
 )
 
 __all__ = [
@@ -104,4 +109,9 @@ __all__ = [
     "SegmentMemorySummary",
     "PlaceSearchResult",
     "PlaceSearchResponse",
+    "RealRoadRoute",
+    "RealRouteLeg",
+    "RealRouteRequest",
+    "RealRouteResponse",
+    "RealRouteWaypoint",
 ]

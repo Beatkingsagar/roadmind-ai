@@ -382,3 +382,54 @@ export interface RealPlace {
   source: string;
   category?: string;
 }
+
+// Real-World Road Routing (Phase 3)
+export interface RealRouteWaypoint {
+  name: string;
+  lat: number;
+  lon: number;
+  distance_to_snapped_meters?: number;
+}
+
+export interface RealRouteLeg {
+  summary: string;
+  distance_meters: number;
+  duration_seconds: number;
+}
+
+export interface RealRoadRoute {
+  route_index: number;
+  is_primary: boolean;
+  summary: string;
+  distance_meters: number;
+  distance_km: number;
+  duration_seconds: number;
+  duration_minutes: number;
+  geometry: {
+    type: string;
+    coordinates: [number, number][]; // [lon, lat]
+  };
+  legs: RealRouteLeg[];
+  weight_name: string;
+}
+
+export interface RealRouteRequest {
+  origin_lat: number;
+  origin_lon: number;
+  destination_lat: number;
+  destination_lon: number;
+  origin_name?: string;
+  destination_name?: string;
+  alternatives?: boolean;
+}
+
+export interface RealRouteResponse {
+  origin: RealRouteWaypoint;
+  destination: RealRouteWaypoint;
+  primary_route: RealRoadRoute;
+  alternative_routes: RealRoadRoute[];
+  provider: string;
+  profile: string;
+  traffic_model: string;
+  attribution: string;
+}

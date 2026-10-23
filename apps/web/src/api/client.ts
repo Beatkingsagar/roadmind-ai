@@ -22,6 +22,8 @@ import type {
   SimulationRequest,
   SimulationRunResponse,
   PlaceSearchResponse,
+  RealRouteRequest,
+  RealRouteResponse,
 } from './types';
 
 export const DEFAULT_API_BASE = 'http://127.0.0.1:8000';
@@ -285,6 +287,15 @@ class RoadMindApiClient {
     if (limit) params.append('limit', limit.toString());
     if (bypassCache) params.append('bypass_cache', 'true');
     return this.request<PlaceSearchResponse>(`/api/v1/real-map/search?${params.toString()}`);
+  }
+
+  // Real-World Road Routing (Phase 3)
+  async calculateRealRoute(req: RealRouteRequest, bypassCache: boolean = false): Promise<RealRouteResponse> {
+    const qs = bypassCache ? '?bypass_cache=true' : '';
+    return this.request<RealRouteResponse>(`/api/v1/real-map/route${qs}`, {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
   }
 }
 

@@ -22,6 +22,17 @@ export function formatDuration(seconds: number | null | undefined): string {
   return `${mins}m ${secs}s`;
 }
 
+export function formatHoursAndMinutes(seconds: number | null | undefined): string {
+  if (seconds === null || seconds === undefined || !Number.isFinite(seconds)) {
+    return 'Unreachable';
+  }
+  const totalMins = Math.round(seconds / 60);
+  if (totalMins < 60) return `${totalMins} min`;
+  const hours = Math.floor(totalMins / 60);
+  const mins = totalMins % 60;
+  return mins > 0 ? `${hours} hr ${mins} min` : `${hours} hr`;
+}
+
 export function formatDistance(meters: number | null | undefined): string {
   if (meters === null || meters === undefined || !Number.isFinite(meters)) {
     return '0 m';

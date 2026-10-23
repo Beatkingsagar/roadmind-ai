@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { api, ApiError } from '../api/client';
-import type { RealPlace, SimulationRunResponse } from '../api/types';
+import type { RealPlace, RealRouteResponse, SimulationRunResponse } from '../api/types';
 import type { MapMode } from '../utils/constants';
-import { useReplay } from './ReplayContext';
 
 interface RouteContextType {
   mapMode: MapMode;
@@ -23,18 +22,26 @@ interface RouteContextType {
   pickMode: 'origin' | 'destination' | null;
   setPickMode: (mode: 'origin' | 'destination' | null) => void;
 
-  // Real-World Journey Planner State (Phase 2)
+  // Real-World Journey Planner State (Phase 2 & Phase 3)
   realOrigin: RealPlace | null;
   realDestination: RealPlace | null;
   setRealOrigin: (place: RealPlace | null) => void;
   setRealDestination: (place: RealPlace | null) => void;
   swapRealPlaces: () => void;
+
+  // Real-World Road Routing State (Phase 3)
+  realRouteResponse: RealRouteResponse | null;
+  selectedRealRouteIndex: number;
+  setSelectedRealRouteIndex: (index: number) => void;
+  isCalculatingRealRoute: boolean;
+  realRouteError: string | null;
+  calculateRealRoute: () => Promise<void>;
+  clearRealRoute: () => void;
 }
 
 const RouteContext = createContext<RouteContextType | undefined>(undefined);
 
 export const RouteProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { replayTime } = useReplay();
   const [mapMode, setMapMode] = useState<MapMode>('real_world');
   const [originNode, setOriginNode] = useState<string>('node_origin');
   const [destinationNode, setDestinationNode] = useState<string>('node_destination');
@@ -48,6 +55,12 @@ export const RouteProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [realOrigin, setRealOrigin] = useState<RealPlace | null>(null);
   const [realDestination, setRealDestination] = useState<RealPlace | null>(null);
 
+  // Real-World Road Routing state (Phase 3)
+  const [realRouteResponse, setRealRouteResponse] = useState<RealRouteResponse | null>(null);
+  const [selectedRealRouteIndex, setSelectedRealRouteIndex] = useState<number>(0);
+  const [isCalculatingRealRoute, setIsCalculatingRealRoute] = useState<boolean>(false);
+  const [realRouteError, setRealRouteError] = useState<string | null>(null);
+
   const swapNodes = () => {
     setOriginNode(destinationNode);
     setDestinationNode(originNode);
@@ -57,7 +70,15 @@ export const RouteProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const prevOrigin = realOrigin;
     setRealOrigin(realDestination);
     setRealDestination(prevOrigin);
+    setRealRouteResponse(null);
+    setRealRouteError(null);
   };
+
+  const clearRealRoute = useCallback(() => {
+    setRealRouteResponse(null);
+    setSelectedRealRouteIndex(0);
+    setRealRouteError(null);
+  }, []);
 
   const calculateRoute = useCallback(async () => {
     if (!originNode || !destinationNode) {
@@ -88,7 +109,39 @@ export const RouteProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } finally {
       setIsCalculating(false);
     }
-  }, [originNode, destinationNode, replayTime]);
+  }, [originNode, destinationNode]);
+
+  const calculateRealRoute = useCallback(async () => {
+    if (!realOrigin || !realDestination) {
+      setRealRouteError('Both Origin and Destination places must be selected.');
+      return;
+    }
+
+    setIsCalculatingRealRoute(true);
+    setRealRouteError(null);
+
+    try {
+      const res = await api.calculateRealRoute({
+        origin_lat: realOrigin.lat,
+        origin_lon: realOrigin.lon,
+        destination_lat: realDestination.lat,
+        destination_lon: realDestination.lon,
+        origin_name: realOrigin.name,
+        destination_name: realDestination.name,
+        alternatives: true,
+      });
+      setRealRouteResponse(res);
+      setSelectedRealRouteIndex(0);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setRealRouteError(err.message);
+      } else {
+        setRealRouteError('Failed to calculate road route. Please verify routing provider availability.');
+      }
+    } finally {
+      setIsCalculatingRealRoute(false);
+    }
+  }, [realOrigin, realDestination]);
 
   return (
     <RouteContext.Provider
@@ -115,6 +168,13 @@ export const RouteProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setRealOrigin,
         setRealDestination,
         swapRealPlaces,
+        realRouteResponse,
+        selectedRealRouteIndex,
+        setSelectedRealRouteIndex,
+        isCalculatingRealRoute,
+        realRouteError,
+        calculateRealRoute,
+        clearRealRoute,
       }}
     >
       {children}
