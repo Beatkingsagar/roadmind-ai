@@ -1,9 +1,12 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { api, ApiError } from '../api/client';
 import type { SimulationRunResponse } from '../api/types';
+import type { MapMode } from '../utils/constants';
 import { useReplay } from './ReplayContext';
 
 interface RouteContextType {
+  mapMode: MapMode;
+  setMapMode: (mode: MapMode) => void;
   originNode: string;
   destinationNode: string;
   setOriginNode: (id: string) => void;
@@ -25,6 +28,7 @@ const RouteContext = createContext<RouteContextType | undefined>(undefined);
 
 export const RouteProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { replayTime } = useReplay();
+  const [mapMode, setMapMode] = useState<MapMode>('real_world');
   const [originNode, setOriginNode] = useState<string>('node_origin');
   const [destinationNode, setDestinationNode] = useState<string>('node_destination');
   const [activeSimulation, setActiveSimulation] = useState<SimulationRunResponse | null>(null);
@@ -72,6 +76,8 @@ export const RouteProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <RouteContext.Provider
       value={{
+        mapMode,
+        setMapMode,
         originNode,
         destinationNode,
         setOriginNode,

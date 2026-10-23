@@ -91,4 +91,23 @@ describe('Network and Demo Constants', () => {
     expect(DEMO_PRESETS[0].incidentSegmentId).toBe('seg_corridor_e');
     expect(DEMO_PRESETS[0].timestamp).toBe('2026-10-15T08:30:00Z');
   });
+
+  it('defines real-world Mangaluru geography and landmarks', () => {
+    const { MANGALURU_CENTER, SECTOR_7_CENTER, MANGALURU_LANDMARKS, TILE_PROVIDERS } = require('./constants');
+    expect(MANGALURU_CENTER[0]).toBeCloseTo(12.9141, 3);
+    expect(MANGALURU_CENTER[1]).toBeCloseTo(74.8560, 3);
+    expect(SECTOR_7_CENTER[0]).toBeCloseTo(40.751, 3);
+    expect(SECTOR_7_CENTER[1]).toBeCloseTo(-73.978, 3);
+
+    expect(MANGALURU_LANDMARKS.length).toBeGreaterThanOrEqual(7);
+    const landmarkIds = MANGALURU_LANDMARKS.map((l: { id: string }) => l.id);
+    expect(landmarkIds).toContain('mng_hampankatta');
+    expect(landmarkIds).toContain('mng_kottara_chowki');
+    expect(landmarkIds).toContain('mng_sdit_kenjar');
+    expect(landmarkIds).toContain('mng_airport');
+
+    expect(TILE_PROVIDERS.cartoVoyager.url).toContain('cartocdn.com');
+    expect(TILE_PROVIDERS.cartoDarkMatter.url).toContain('cartocdn.com');
+  });
 });
+

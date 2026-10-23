@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { Globe, FlaskConical, RotateCcw, RefreshCw } from 'lucide-react';
 import { api } from '../../api/client';
 import type {
   IncidentEpisodeResponse,
@@ -9,10 +10,15 @@ import type {
 } from '../../api/types';
 import { useReplay } from '../../context/ReplayContext';
 import { useRoute } from '../../context/RouteContext';
+import { useTheme } from '../../context/ThemeContext';
 import {
-  MAP_CENTER,
-  MAP_DEFAULT_ZOOM,
+  MANGALURU_CENTER,
+  MANGALURU_DEFAULT_ZOOM,
+  SECTOR_7_CENTER,
+  SECTOR_7_DEFAULT_ZOOM,
+  MANGALURU_LANDMARKS,
   SUPPORTED_NODES,
+  TILE_PROVIDERS,
   getCongestionColor,
 } from '../../utils/constants';
 import { formatSpeed } from '../../utils/formatters';
@@ -22,12 +28,17 @@ import { SegmentDetailsPanel } from './SegmentDetailsPanel';
 export const MapView: React.FC = () => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
   const roadLayerGroupRef = useRef<L.LayerGroup | null>(null);
   const markersLayerGroupRef = useRef<L.LayerGroup | null>(null);
   const routeLayerGroupRef = useRef<L.LayerGroup | null>(null);
+  const landmarksLayerGroupRef = useRef<L.LayerGroup | null>(null);
 
+  const { theme } = useTheme();
   const { replayTime } = useReplay();
   const {
+    mapMode,
+    setMapMode,
     originNode,
     destinationNode,
     setOriginNode,
@@ -49,16 +60,25 @@ export const MapView: React.FC = () => {
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
+    const initialCenter = mapMode === 'real_world' ? MANGALURU_CENTER : SECTOR_7_CENTER;
+    const initialZoom = mapMode === 'real_world' ? MANGALURU_DEFAULT_ZOOM : SECTOR_7_DEFAULT_ZOOM;
+
     const map = L.map(mapContainerRef.current, {
-      center: MAP_CENTER,
-      zoom: MAP_DEFAULT_ZOOM,
+      center: initialCenter,
+      zoom: initialZoom,
       zoomControl: true,
       attributionControl: true,
     });
 
-    const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | RoadMind AI',
+    const provider = theme === 'dark' ? TILE_PROVIDERS.cartoDarkMatter : TILE_PROVIDERS.cartoVoyager;
+    const tileLayer = L.tileLayer(provider.url, {
+      maxZoom: provider.maxZoom,
+      attribution: provider.attribution,
+      subdomains: provider.subdomains,
+    });
+
+    tileLayer.on('tileload', () => {
+      setTileError(false);
     });
 
     tileLayer.on('tileerror', () => {
@@ -66,21 +86,47 @@ export const MapView: React.FC = () => {
     });
 
     tileLayer.addTo(map);
+    tileLayerRef.current = tileLayer;
 
     const roadGroup = L.layerGroup().addTo(map);
     const markersGroup = L.layerGroup().addTo(map);
     const routeGroup = L.layerGroup().addTo(map);
+    const landmarksGroup = L.layerGroup().addTo(map);
 
     roadLayerGroupRef.current = roadGroup;
     markersLayerGroupRef.current = markersGroup;
     routeLayerGroupRef.current = routeGroup;
+    landmarksLayerGroupRef.current = landmarksGroup;
     mapInstanceRef.current = map;
 
     return () => {
       map.remove();
       mapInstanceRef.current = null;
+      tileLayerRef.current = null;
     };
-  }, []);
+  }, []); // Run once on mount
+
+  // Update Tile Layer URL when theme changes
+  useEffect(() => {
+    if (!tileLayerRef.current) return;
+    const provider = theme === 'dark' ? TILE_PROVIDERS.cartoDarkMatter : TILE_PROVIDERS.cartoVoyager;
+    tileLayerRef.current.setUrl(provider.url);
+  }, [theme]);
+
+  // Handle smooth flyTo and size invalidation when mapMode changes
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    const map = mapInstanceRef.current;
+    if (mapMode === 'real_world') {
+      map.flyTo(MANGALURU_CENTER, MANGALURU_DEFAULT_ZOOM, { duration: 1.2 });
+    } else {
+      map.flyTo(SECTOR_7_CENTER, SECTOR_7_DEFAULT_ZOOM, { duration: 1.2 });
+    }
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [mapMode]);
 
   // Fetch Network Topology once
   useEffect(() => {
@@ -126,18 +172,75 @@ export const MapView: React.FC = () => {
     };
   }, [replayTime]);
 
-  // Render Roads, Markers, and Routes
+  // Render Roads, Markers, Landmarks and Routes
   const renderLayers = useCallback(() => {
     const map = mapInstanceRef.current;
     const roadGroup = roadLayerGroupRef.current;
     const markersGroup = markersLayerGroupRef.current;
     const routeGroup = routeLayerGroupRef.current;
+    const landmarksGroup = landmarksLayerGroupRef.current;
 
-    if (!map || !roadGroup || !markersGroup || !routeGroup || !networkData) return;
+    if (!map || !roadGroup || !markersGroup || !routeGroup || !landmarksGroup) return;
 
     roadGroup.clearLayers();
     markersGroup.clearLayers();
     routeGroup.clearLayers();
+    landmarksGroup.clearLayers();
+
+    // ==========================================
+    // MODE 1: Real-World Journey Planner Mode
+    // ==========================================
+    if (mapMode === 'real_world') {
+      // Strictly isolate real geography: Never draw synthetic roads or simulated traffic here
+      for (const landmark of MANGALURU_LANDMARKS) {
+        let iconEmoji = '🏛️';
+        let categoryClass = 'transit';
+
+        if (landmark.category.includes('Highway') || landmark.category.includes('Intersection') || landmark.category.includes('Gateway')) {
+          iconEmoji = '🛣️';
+          categoryClass = 'highway';
+        } else if (landmark.category.includes('Airport') || landmark.category.includes('Aviation')) {
+          iconEmoji = '✈️';
+          categoryClass = 'aviation';
+        } else if (landmark.category.includes('Educational') || landmark.category.includes('Campus') || landmark.id.includes('sdit')) {
+          iconEmoji = '🎓';
+          categoryClass = 'academic';
+        }
+
+        const icon = L.divIcon({
+          className: '',
+          html: `<div class="custom-node-marker landmark ${categoryClass}" style="width: 32px; height: 32px; font-size: 14px;" title="${landmark.name}">${iconEmoji}</div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+        });
+
+        const marker = L.marker(landmark.coordinates, { icon });
+        marker.bindPopup(`
+          <div style="font-family: inherit; font-size: 12px; min-width: 220px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
+              <strong style="font-size: 13px; color: var(--text-primary);">${landmark.name}</strong>
+            </div>
+            <div style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; background: var(--bg-tertiary); color: var(--primary-500); margin-bottom: 8px;">
+              ${landmark.category}
+            </div>
+            <div style="color: var(--text-secondary); font-size: 11px; margin-bottom: 8px; line-height: 1.4;">
+              ${landmark.description}
+            </div>
+            <div style="font-size: 10px; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 6px; display: flex; justify-content: space-between;">
+              <span>Coordinates:</span>
+              <code>${landmark.coordinates[0].toFixed(4)}, ${landmark.coordinates[1].toFixed(4)}</code>
+            </div>
+          </div>
+        `);
+        marker.addTo(landmarksGroup);
+      }
+      return;
+    }
+
+    // ==========================================
+    // MODE 2: Synthetic Demo Network Mode (Sector 7)
+    // ==========================================
+    if (!networkData) return;
 
     // 1. Draw Network Segments (Polylines)
     for (const feature of networkData.features) {
@@ -275,11 +378,9 @@ export const MapView: React.FC = () => {
 
     // 3. Draw Active Incidents
     for (const inc of incidents) {
-      // Find matching segment geometry to place incident marker along segment
       const segId = inc.primary_segment_id;
       const feature = networkData.features.find((f) => f.properties.id === segId);
       if (feature && feature.geometry.coordinates.length > 0) {
-        // Place at midpoint
         const coords = feature.geometry.coordinates;
         const midIdx = Math.floor(coords.length / 2);
         const midPoint: [number, number] = [coords[midIdx][1], coords[midIdx][0]];
@@ -340,6 +441,7 @@ export const MapView: React.FC = () => {
       }
     }
   }, [
+    mapMode,
     networkData,
     roadStates,
     incidents,
@@ -359,14 +461,139 @@ export const MapView: React.FC = () => {
     renderLayers();
   }, [renderLayers]);
 
+  // Recenter handler
+  const handleRecenter = () => {
+    if (!mapInstanceRef.current) return;
+    if (mapMode === 'real_world') {
+      mapInstanceRef.current.setView(MANGALURU_CENTER, MANGALURU_DEFAULT_ZOOM);
+    } else {
+      mapInstanceRef.current.setView(SECTOR_7_CENTER, SECTOR_7_DEFAULT_ZOOM);
+    }
+  };
+
+  // Retry tile loading
+  const handleRetryTiles = () => {
+    if (!tileLayerRef.current) return;
+    setTileError(false);
+    const provider = theme === 'dark' ? TILE_PROVIDERS.cartoDarkMatter : TILE_PROVIDERS.cartoVoyager;
+    tileLayerRef.current.setUrl(provider.url);
+    tileLayerRef.current.redraw();
+  };
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', flex: 1, overflow: 'hidden' }}>
+      {/* Top Floating Controls Bar */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '16px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: 'var(--bg-surface)',
+          padding: '6px 10px',
+          borderRadius: 'var(--radius-full)',
+          boxShadow: 'var(--shadow-lg)',
+          border: '1px solid var(--border-medium)',
+          backdropFilter: 'blur(12px)',
+        }}
+      >
+        {/* Real-World Journey Planner Toggle */}
+        <button
+          id="btn-mode-real-world"
+          type="button"
+          onClick={() => setMapMode('real_world')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 14px',
+            borderRadius: 'var(--radius-full)',
+            fontSize: '12px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            background: mapMode === 'real_world' ? 'var(--primary-600)' : 'transparent',
+            color: mapMode === 'real_world' ? '#ffffff' : 'var(--text-secondary)',
+            border: 'none',
+          }}
+        >
+          <Globe size={14} />
+          <span>Real-World Journey Planner</span>
+          <span
+            style={{
+              fontSize: '10px',
+              padding: '1px 6px',
+              borderRadius: '4px',
+              background: mapMode === 'real_world' ? 'rgba(255,255,255,0.25)' : 'var(--bg-tertiary)',
+              color: mapMode === 'real_world' ? '#ffffff' : 'var(--text-muted)',
+              fontWeight: 700,
+            }}
+          >
+            Default
+          </span>
+        </button>
+
+        {/* Synthetic Demo Network Toggle */}
+        <button
+          id="btn-mode-synthetic"
+          type="button"
+          onClick={() => setMapMode('synthetic_demo')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 14px',
+            borderRadius: 'var(--radius-full)',
+            fontSize: '12px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            background: mapMode === 'synthetic_demo' ? 'var(--primary-600)' : 'transparent',
+            color: mapMode === 'synthetic_demo' ? '#ffffff' : 'var(--text-secondary)',
+            border: 'none',
+          }}
+        >
+          <FlaskConical size={14} />
+          <span>Synthetic Demo Network</span>
+          <span
+            style={{
+              fontSize: '10px',
+              padding: '1px 6px',
+              borderRadius: '4px',
+              background: mapMode === 'synthetic_demo' ? 'rgba(255,255,255,0.25)' : 'var(--bg-tertiary)',
+              color: mapMode === 'synthetic_demo' ? '#ffffff' : 'var(--text-muted)',
+              fontWeight: 700,
+            }}
+          >
+            Sector 7
+          </span>
+        </button>
+
+        <div style={{ width: '1px', height: '18px', background: 'var(--border-medium)', margin: '0 2px' }} />
+
+        {/* Recenter Button */}
+        <button
+          id="btn-recenter-map"
+          type="button"
+          onClick={handleRecenter}
+          title={mapMode === 'real_world' ? 'Recenter on Mangaluru' : 'Recenter on Sector 7'}
+          className="btn btn-ghost btn-icon"
+          style={{ padding: '6px', borderRadius: '50%' }}
+        >
+          <RotateCcw size={14} />
+        </button>
+      </div>
+
       {/* Pick Mode Banner */}
       {pickMode && (
         <div
           style={{
             position: 'absolute',
-            top: '16px',
+            top: '70px',
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 1000,
@@ -395,12 +622,12 @@ export const MapView: React.FC = () => {
         </div>
       )}
 
-      {/* Tile Fallback Notice */}
+      {/* Tile Fallback Notice with Retry Button */}
       {tileError && (
         <div
           style={{
             position: 'absolute',
-            top: '16px',
+            top: '70px',
             right: '20px',
             zIndex: 1000,
             background: 'var(--status-amber-bg)',
@@ -409,14 +636,27 @@ export const MapView: React.FC = () => {
             padding: '8px 14px',
             borderRadius: 'var(--radius-md)',
             fontSize: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            boxShadow: 'var(--shadow-md)',
           }}
         >
-          Offline map mode: tile server unreachable, displaying vector road network directly.
+          <span>Offline map mode: tile server unreachable, displaying vector road network directly.</span>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={handleRetryTiles}
+            style={{ padding: '2px 8px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}
+          >
+            <RefreshCw size={11} />
+            <span>Retry</span>
+          </button>
         </div>
       )}
 
       {/* Loading Overlay */}
-      {loading && !networkData && (
+      {loading && mapMode === 'synthetic_demo' && !networkData && (
         <div
           style={{
             position: 'absolute',
@@ -441,8 +681,8 @@ export const MapView: React.FC = () => {
       {/* Map Legend */}
       <MapLegend />
 
-      {/* Segment Details Inspector Drawer */}
-      {selectedSegmentId && (
+      {/* Segment Details Inspector Drawer (Synthetic Mode) */}
+      {selectedSegmentId && mapMode === 'synthetic_demo' && (
         <SegmentDetailsPanel
           segmentId={selectedSegmentId}
           onClose={() => setSelectedSegmentId(null)}

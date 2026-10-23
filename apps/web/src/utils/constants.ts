@@ -89,8 +89,102 @@ export const DEMO_PRESETS = [
   },
 ];
 
-export const MAP_CENTER: [number, number] = [40.751, -73.978];
-export const MAP_DEFAULT_ZOOM = 14;
+export type MapMode = 'real_world' | 'synthetic_demo';
+
+// Real-World Geography: Mangaluru & Coastal Karnataka (Default Experience)
+export const MANGALURU_CENTER: [number, number] = [12.9141, 74.8560];
+export const MANGALURU_DEFAULT_ZOOM = 12;
+
+// Synthetic Demo Network (Sector 7 Benchmark)
+export const SECTOR_7_CENTER: [number, number] = [40.751, -73.978];
+export const SECTOR_7_DEFAULT_ZOOM = 14;
+
+// Default map view defaults to Real-World Mangaluru geography
+export const MAP_CENTER: [number, number] = MANGALURU_CENTER;
+export const MAP_DEFAULT_ZOOM = MANGALURU_DEFAULT_ZOOM;
+
+// Real-world key landmark coordinates for Coastal Karnataka
+export interface RealLandmark {
+  id: string;
+  name: string;
+  category: string;
+  coordinates: [number, number]; // [lat, lon]
+  description: string;
+}
+
+export const MANGALURU_LANDMARKS: RealLandmark[] = [
+  {
+    id: 'mng_hampankatta',
+    name: 'Hampankatta (City Center)',
+    category: 'Transit & Commercial Core',
+    coordinates: [12.8703, 74.8427],
+    description: 'Central hub near Mangaluru Central Railway Station & KS Rao Road',
+  },
+  {
+    id: 'mng_kottara_chowki',
+    name: 'Kottara Chowki Junction',
+    category: 'Major Highway Intersection',
+    coordinates: [12.9102, 74.8363],
+    description: 'Northern junction connecting NH 66, Kuloor Ferry Road & Airport Corridor',
+  },
+  {
+    id: 'mng_lalbagh',
+    name: 'Lalbagh (MCC Headquarters)',
+    category: 'Civic Center',
+    coordinates: [12.8841, 74.8402],
+    description: 'Mangaluru City Corporation & Ladyhill junction',
+  },
+  {
+    id: 'mng_pumpwell',
+    name: 'Pumpwell (Mahaveer Circle)',
+    category: 'Southern Gateway',
+    coordinates: [12.8569, 74.8698],
+    description: 'Major arterial interchange connecting NH 66 (Kasaragod) & NH 73 (Bengaluru)',
+  },
+  {
+    id: 'mng_surathkal',
+    name: 'Surathkal (NITK Corridor)',
+    category: 'Northern Coastal Hub',
+    coordinates: [13.0119, 74.7943],
+    description: 'National Highway 66 arterial connecting Udupi & Mangaluru industrial belt',
+  },
+  {
+    id: 'mng_sdit_kenjar',
+    name: 'SDIT Kenjar (Airport Road)',
+    category: 'Educational & Airport Corridor',
+    coordinates: [12.9610, 74.8967],
+    description: 'Shree Devi Institute of Technology campus on Bajpe Airport Road',
+  },
+  {
+    id: 'mng_airport',
+    name: 'Mangaluru International Airport (IXE)',
+    category: 'Aviation Terminal',
+    coordinates: [12.9613, 74.8900],
+    description: 'Bajpe international aviation terminal',
+  },
+];
+
+export const TILE_PROVIDERS = {
+  cartoVoyager: {
+    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: ['a', 'b', 'c', 'd'],
+    maxZoom: 19,
+  },
+  cartoDarkMatter: {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: ['a', 'b', 'c', 'd'],
+    maxZoom: 19,
+  },
+  osmStandard: {
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    subdomains: ['a', 'b', 'c'],
+    maxZoom: 19,
+  },
+};
+
 
 export const CONGESTION_COLORS = {
   freeFlow: '#10b981', // Emerald 500 (>= 0.85)
