@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { api, ApiError } from '../api/client';
-import type { SimulationRunResponse } from '../api/types';
+import type { RealPlace, SimulationRunResponse } from '../api/types';
 import type { MapMode } from '../utils/constants';
 import { useReplay } from './ReplayContext';
 
@@ -22,6 +22,13 @@ interface RouteContextType {
   setErrorMessage: (msg: string | null) => void;
   pickMode: 'origin' | 'destination' | null;
   setPickMode: (mode: 'origin' | 'destination' | null) => void;
+
+  // Real-World Journey Planner State (Phase 2)
+  realOrigin: RealPlace | null;
+  realDestination: RealPlace | null;
+  setRealOrigin: (place: RealPlace | null) => void;
+  setRealDestination: (place: RealPlace | null) => void;
+  swapRealPlaces: () => void;
 }
 
 const RouteContext = createContext<RouteContextType | undefined>(undefined);
@@ -37,9 +44,19 @@ export const RouteProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pickMode, setPickMode] = useState<'origin' | 'destination' | null>(null);
 
+  // Real-World Journey Planner state: Kundapura & Mangaluru ready
+  const [realOrigin, setRealOrigin] = useState<RealPlace | null>(null);
+  const [realDestination, setRealDestination] = useState<RealPlace | null>(null);
+
   const swapNodes = () => {
     setOriginNode(destinationNode);
     setDestinationNode(originNode);
+  };
+
+  const swapRealPlaces = () => {
+    const prevOrigin = realOrigin;
+    setRealOrigin(realDestination);
+    setRealDestination(prevOrigin);
   };
 
   const calculateRoute = useCallback(async () => {
@@ -93,6 +110,11 @@ export const RouteProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setErrorMessage,
         pickMode,
         setPickMode,
+        realOrigin,
+        realDestination,
+        setRealOrigin,
+        setRealDestination,
+        swapRealPlaces,
       }}
     >
       {children}

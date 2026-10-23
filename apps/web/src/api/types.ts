@@ -349,3 +349,36 @@ export interface SegmentHistoryResponse {
     provenance: string;
   }>;
 }
+
+// Real-World Map Geocoding and Place Search
+export interface PlaceSearchResult {
+  id: string;
+  display_name: string;
+  name: string;
+  category?: string;
+  type?: string;
+  lat: number;
+  lon: number;
+  bounding_box?: number[];
+  source: 'verified_cache' | 'osm_nominatim' | string;
+  importance?: number;
+  raw_address?: Record<string, unknown>;
+}
+
+export interface PlaceSearchResponse {
+  query: string;
+  count: number;
+  results: PlaceSearchResult[];
+  source: string;
+  attribution: string;
+}
+
+export interface RealPlace {
+  id: string;
+  name: string;
+  displayName: string;
+  lat: number;
+  lon: number;
+  source: string;
+  category?: string;
+}

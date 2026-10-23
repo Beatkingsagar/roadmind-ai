@@ -207,3 +207,16 @@ export function getCongestionLabel(ratio: number): string {
   if (ratio >= 0.3) return 'Heavy Congestion';
   return 'Severe Delay / Blocked';
 }
+
+export function isValidCoordinate(lat: number, lon: number): boolean {
+  return (
+    typeof lat === 'number' &&
+    typeof lon === 'number' &&
+    !Number.isNaN(lat) &&
+    !Number.isNaN(lon) &&
+    lat >= -90.0 &&
+    lat <= 90.0 &&
+    lon >= -180.0 &&
+    lon <= 180.0
+  );
+}

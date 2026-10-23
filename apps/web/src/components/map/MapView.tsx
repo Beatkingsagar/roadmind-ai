@@ -48,6 +48,8 @@ export const MapView: React.FC = () => {
     setSelectedSegmentId,
     pickMode,
     setPickMode,
+    realOrigin,
+    realDestination,
   } = useRoute();
 
   const [networkData, setNetworkData] = useState<NetworkGeoJSONResponse | null>(null);
@@ -234,6 +236,60 @@ export const MapView: React.FC = () => {
         `);
         marker.addTo(landmarksGroup);
       }
+
+      // Draw Selected Real Origin (A) Marker if present
+      if (realOrigin) {
+        const originIcon = L.divIcon({
+          className: '',
+          html: `<div class="custom-node-marker origin" style="width: 32px; height: 32px; font-size: 14px; font-weight: 800; border: 2px solid #ffffff; box-shadow: 0 0 14px rgba(16, 185, 129, 0.8);">A</div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+        });
+        const originMarker = L.marker([realOrigin.lat, realOrigin.lon], { icon: originIcon, zIndexOffset: 1000 });
+        originMarker.bindPopup(`
+          <div style="font-family: inherit; font-size: 12px; min-width: 220px;">
+            <div style="color: #10b981; font-weight: 700; margin-bottom: 2px;">📍 Selected Origin (A)</div>
+            <strong style="font-size: 13px;">${realOrigin.name}</strong>
+            <div style="color: var(--text-secondary); font-size: 11px; margin: 4px 0 6px 0;">${realOrigin.displayName}</div>
+            <div style="font-size: 10px; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 4px;">
+              WGS84: <code>${realOrigin.lat.toFixed(4)}° N, ${realOrigin.lon.toFixed(4)}° E</code> (${realOrigin.source})
+            </div>
+          </div>
+        `);
+        originMarker.addTo(landmarksGroup);
+      }
+
+      // Draw Selected Real Destination (B) Marker if present
+      if (realDestination) {
+        const destIcon = L.divIcon({
+          className: '',
+          html: `<div class="custom-node-marker destination" style="width: 32px; height: 32px; font-size: 14px; font-weight: 800; border: 2px solid #ffffff; box-shadow: 0 0 14px rgba(37, 99, 235, 0.8);">B</div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+        });
+        const destMarker = L.marker([realDestination.lat, realDestination.lon], { icon: destIcon, zIndexOffset: 1000 });
+        destMarker.bindPopup(`
+          <div style="font-family: inherit; font-size: 12px; min-width: 220px;">
+            <div style="color: #2563eb; font-weight: 700; margin-bottom: 2px;">📍 Selected Destination (B)</div>
+            <strong style="font-size: 13px;">${realDestination.name}</strong>
+            <div style="color: var(--text-secondary); font-size: 11px; margin: 4px 0 6px 0;">${realDestination.displayName}</div>
+            <div style="font-size: 10px; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 4px;">
+              WGS84: <code>${realDestination.lat.toFixed(4)}° N, ${realDestination.lon.toFixed(4)}° E</code> (${realDestination.source})
+            </div>
+          </div>
+        `);
+        destMarker.addTo(landmarksGroup);
+      }
+
+      // Fit map viewport to encompass both points when both are selected
+      if (realOrigin && realDestination) {
+        const bounds = L.latLngBounds(
+          [realOrigin.lat, realOrigin.lon],
+          [realDestination.lat, realDestination.lon]
+        );
+        map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
+      }
+
       return;
     }
 
@@ -450,6 +506,8 @@ export const MapView: React.FC = () => {
     destinationNode,
     activeSimulation,
     pickMode,
+    realOrigin,
+    realDestination,
     setOriginNode,
     setDestinationNode,
     setPickMode,

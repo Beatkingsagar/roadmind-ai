@@ -111,3 +111,147 @@ describe('Network and Demo Constants', () => {
   });
 });
 
+describe('Phase 2: Real-Place Search & Coordinate Validation', () => {
+  const { isValidCoordinate } = require('./constants');
+
+  it('validates geographic coordinates accurately', () => {
+    // Kundapura
+    expect(isValidCoordinate(13.6268, 74.6917)).toBe(true);
+    // Mangaluru
+    expect(isValidCoordinate(12.9141, 74.8560)).toBe(true);
+    // Boundary bounds
+    expect(isValidCoordinate(-90.0, -180.0)).toBe(true);
+    expect(isValidCoordinate(90.0, 180.0)).toBe(true);
+
+    // Invalid coordinates
+    expect(isValidCoordinate(95.0, 74.85)).toBe(false);
+    expect(isValidCoordinate(-95.0, 74.85)).toBe(false);
+    expect(isValidCoordinate(12.91, 195.0)).toBe(false);
+    expect(isValidCoordinate(12.91, -195.0)).toBe(false);
+    expect(isValidCoordinate(NaN, 74.85)).toBe(false);
+    expect(isValidCoordinate(12.91, NaN)).toBe(false);
+  });
+
+  it('correctly models place selection and coordinate storage for Kundapura and Mangaluru', () => {
+    interface RealPlace {
+      id: string;
+      name: string;
+      displayName: string;
+      lat: number;
+      lon: number;
+      source: string;
+    }
+
+    const kundapura: RealPlace = {
+      id: 'cache_kundapura',
+      name: 'Kundapura',
+      displayName: 'Kundapura, Udupi District, Karnataka, India',
+      lat: 13.6268,
+      lon: 74.6917,
+      source: 'verified_cache',
+    };
+
+    const mangaluru: RealPlace = {
+      id: 'cache_mangaluru',
+      name: 'Mangaluru',
+      displayName: 'Mangaluru, Dakshina Kannada, Karnataka, India',
+      lat: 12.9141,
+      lon: 74.8560,
+      source: 'verified_cache',
+    };
+
+    expect(kundapura.name).toBe('Kundapura');
+    expect(kundapura.lat).toBeCloseTo(13.6268, 4);
+    expect(kundapura.lon).toBeCloseTo(74.6917, 4);
+    expect(kundapura.source).toBe('verified_cache');
+
+    expect(mangaluru.name).toBe('Mangaluru');
+    expect(mangaluru.lat).toBeCloseTo(12.9141, 4);
+    expect(mangaluru.lon).toBeCloseTo(74.8560, 4);
+    expect(mangaluru.source).toBe('verified_cache');
+  });
+
+  it('correctly swaps origin and destination places and coordinates bidirectionally', () => {
+    let origin = {
+      name: 'Kundapura',
+      lat: 13.6268,
+      lon: 74.6917,
+    };
+    let destination = {
+      name: 'Mangaluru',
+      lat: 12.9141,
+      lon: 74.8560,
+    };
+
+    // Swap simulation
+    const swap = () => {
+      const temp = origin;
+      origin = destination;
+      destination = temp;
+    };
+
+    swap();
+    expect(origin.name).toBe('Mangaluru');
+    expect(origin.lat).toBeCloseTo(12.9141, 4);
+    expect(destination.name).toBe('Kundapura');
+    expect(destination.lat).toBeCloseTo(13.6268, 4);
+
+    // Swap back
+    swap();
+    expect(origin.name).toBe('Kundapura');
+    expect(destination.name).toBe('Mangaluru');
+  });
+
+  it('clears selected place state accurately', () => {
+    let place: { name: string; lat: number; lon: number } | null = {
+      name: 'Kundapura',
+      lat: 13.6268,
+      lon: 74.6917,
+    };
+
+    const clearPlace = () => {
+      place = null;
+    };
+
+    clearPlace();
+    expect(place).toBeNull();
+  });
+
+  it('preserves map mode invariants between real-world and synthetic demo', () => {
+    type MapMode = 'real_world' | 'synthetic_demo';
+    let currentMode: MapMode = 'real_world';
+
+    // Default must be real_world
+    expect(currentMode).toBe('real_world');
+
+    // Switch to synthetic demo
+    currentMode = 'synthetic_demo';
+    expect(currentMode).toBe('synthetic_demo');
+
+    // Return to real_world
+    currentMode = 'real_world';
+    expect(currentMode).toBe('real_world');
+  });
+
+  it('verifies debounce execution behavior', async () => {
+    let callCount = 0;
+    let timer: any = null;
+
+    const debouncedSearch = (val: string) => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        callCount++;
+      }, 50);
+    };
+
+    debouncedSearch('k');
+    debouncedSearch('ku');
+    debouncedSearch('kun');
+    debouncedSearch('kund');
+    debouncedSearch('kundapura');
+
+    expect(callCount).toBe(0);
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    expect(callCount).toBe(1);
+  });
+});

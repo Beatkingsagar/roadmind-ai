@@ -21,6 +21,7 @@ import type {
   SegmentHistoryResponse,
   SimulationRequest,
   SimulationRunResponse,
+  PlaceSearchResponse,
 } from './types';
 
 export const DEFAULT_API_BASE = 'http://127.0.0.1:8000';
@@ -275,6 +276,15 @@ class RoadMindApiClient {
         },
       }
     );
+  }
+
+  // Real-World Map Geocoding
+  async searchPlaces(query: string, limit: number = 5, bypassCache: boolean = false): Promise<PlaceSearchResponse> {
+    const params = new URLSearchParams();
+    params.append('q', query);
+    if (limit) params.append('limit', limit.toString());
+    if (bypassCache) params.append('bypass_cache', 'true');
+    return this.request<PlaceSearchResponse>(`/api/v1/real-map/search?${params.toString()}`);
   }
 }
 

@@ -56,6 +56,11 @@ from backend.app.schemas.memory import (
     SegmentMemorySummary,
 )
 
+from backend.app.schemas.real_map import (
+    PlaceSearchResult,
+    PlaceSearchResponse,
+)
+
 __all__ = [
     "AbstentionReason",
     "DataMode",
@@ -97,4 +102,6 @@ __all__ = [
     "InspectionPriority",
     "ObservationCoverage",
     "SegmentMemorySummary",
+    "PlaceSearchResult",
+    "PlaceSearchResponse",
 ]
