@@ -18,8 +18,9 @@ graph TD
 | :--- | :--- | :---: | :---: | :--- |
 | **Phase 1** | Foundation, Data Contracts & Deterministic Fixtures | ✅ Completed | 27/27 | SQLAlchemy models, Pydantic v2 schemas, SQLite database, GeoJSON network, seed pipeline (`pipelines/ingest/seed.py`), 12 benchmark fixtures with SHA-256 manifest. |
 | **Phase 2** | Core Domain Services & Independent Verification | ✅ Completed | 30/30 | Evidence assessment engine, NetworkX scenario router, assumption-sensitive recommendation engine, forecasting engine (persistence & median), road memory & inspection priority. |
+| **Phase 3** | FastAPI Backend, API Endpoints, Persistence & Replay | ✅ Completed | 17/17 | REST endpoints connecting domain services, temporal replay filtering, server-side SHA-256 evidence hashing, format & size security boundaries, idempotency protection, reviewer authorization boundaries, and 17 integration tests. |
 | **Phase 4** | Interactive Frontend Dashboard & Scenario Simulation UI | ✅ Completed | 8/8 | React 19/TS/Vite web app, Leaflet vector map, From/Dest route planner, 3-way scenario simulations, citizen intake, operator review, Recharts forecasting & memory priorities. |
-| **Phase 5** | End-to-End Verification & Documentation Polish | ⏳ Next Up | — | End-to-end integration verification, presentation demo script, submission packaging. |
+| **Phase 5** | End-to-End Verification & Documentation Polish | ✅ Completed | E2E + Script | End-to-end integration verification, security validation tests, browser subagent validation, timed 3-minute hackathon demo script (`docs/HACKATHON_DEMO.md`), final documentation polish. |
 
 ---
 
@@ -82,7 +83,10 @@ graph TD
 
 ## Phase 5: End-to-End Verification, Live Demo Script & Polish
 - **Objective**: Run complete end-to-end user journeys, benchmark response times, and polish presentation materials for NEXATHON 2026.
-- **Key Tasks**:
-  1. Full-stack verification with live FastAPI backend on `:8000` and Vite dev server on `:5173`.
-  2. Document 3-minute hackathon judge walkthrough script.
-  3. Final submission packaging.
+- **Verification Gate**:
+  - Full-stack verification with live FastAPI backend on `:8000` and Vite dev server on `:5173`.
+  - 74/74 backend unit and integration tests passing.
+  - 8/8 frontend unit tests passing, 0 TypeScript errors, 0 linter errors.
+  - Browser subagent validation covering all application views.
+  - Timed 3-minute hackathon judge walkthrough script delivered in `docs/HACKATHON_DEMO.md`.
+

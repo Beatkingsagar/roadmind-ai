@@ -183,12 +183,38 @@ async def upload_evidence(
             detail=f"Report with id '{id}' not found.",
         )
 
+    ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp", "gif", "mp4"}
+    ALLOWED_MIME_TYPES = {
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+        "video/mp4",
+    }
+    MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+
+    ext = (file.filename.split(".")[-1].lower() if file.filename and "." in file.filename else "")
+    if ext not in ALLOWED_EXTENSIONS or (
+        file.content_type
+        and file.content_type not in ALLOWED_MIME_TYPES
+        and file.content_type != "application/octet-stream"
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail=f"Unsupported media format. Allowed formats: JPG, PNG, WebP, GIF, MP4.",
+        )
+
     # 2. Read media content bytes
     media_bytes = await file.read()
     if not media_bytes:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Uploaded file is empty (0 bytes).",
+        )
+    if len(media_bytes) > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"Uploaded file exceeds maximum allowed size of 10 MB.",
         )
 
     # 3. Server-side SHA-256 calculation

@@ -282,6 +282,39 @@ def test_evidence_server_side_hashing_and_duplicate_detection(seeded_client):
     assert ev2_data["content_hash"] == original_hash
 
 
+def test_evidence_unsupported_format_and_oversized_rejection(seeded_client):
+    """Verify that unsupported media extensions and oversized files (>10MB) are rejected."""
+    # 1. Create a parent report
+    rep_resp = seeded_client.post(
+        "/api/v1/reports",
+        json={
+            "incident_type": "debris",
+            "claimed_event_time": "2026-10-15T09:45:00Z",
+            "segment_id": "seg_corridor_w",
+            "location_description": "Near Mile Marker 2",
+            "latitude": 40.7495,
+            "longitude": -73.9825,
+            "description": "Debris report for file validation testing.",
+        },
+    )
+    assert rep_resp.status_code == 201
+    report_id = rep_resp.json()["id"]
+
+    # 2. Reject unsupported executable/binary file
+    malicious_files = {"file": ("exploit.exe", io.BytesIO(b"MZtestexecutable"), "application/x-msdownload")}
+    resp_unsupported = seeded_client.post(f"/api/v1/reports/{report_id}/evidence", files=malicious_files)
+    assert resp_unsupported.status_code == 415
+    assert "Unsupported media format" in resp_unsupported.json()["error"]["message"]
+
+    # 3. Reject oversized file (>10MB)
+    large_payload = b"X" * (11 * 1024 * 1024)
+    oversized_files = {"file": ("gigantic_photo.jpg", io.BytesIO(large_payload), "image/jpeg")}
+    resp_oversized = seeded_client.post(f"/api/v1/reports/{report_id}/evidence", files=oversized_files)
+    assert resp_oversized.status_code == 413
+    assert "exceeds maximum allowed size" in resp_oversized.json()["error"]["message"]
+
+
+
 # ==============================================================================
 # 6. Review Authorization Boundaries
 # ==============================================================================
@@ -578,3 +611,4 @@ def test_persistence_across_application_restart(test_db_engine):
         assert data["scenario_type"] == "restart_test"
 
     app.dependency_overrides.clear()
+
