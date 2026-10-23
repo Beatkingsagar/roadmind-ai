@@ -195,8 +195,42 @@ All core API endpoints are versioned under `/api/v1` (with `/api/health` at root
 
 ---
 
-## 9. Next Implementation Steps (Phase 4)
+---
 
-With Phase 1, Phase 2, and Phase 3 verified:
-- **Phase 4**: Interactive Frontend Dashboard (React / Vite / TypeScript map UI, scenario comparison controls, inspector panel).
-- **Phase 5**: End-to-End Verification & Presentation Polish.
+## 9. Frontend Application (apps/web)
+
+RoadMind AI includes a responsive, accessible, high-performance web dashboard built in `apps/web/` using React 19, TypeScript, Vite, Leaflet, and Recharts.
+
+### Frontend Features:
+- **Navy & Blue Visual Identity**: Professional municipal command center styling with Premium Light and Dark mode toggles.
+- **Interactive Leaflet Network Map**: Vector polyline rendering of the Sector 7 Corridor network (`GET /api/v1/network`), dynamically colored by real-time congestion ratios (`GET /api/v1/road-state`).
+- **Interactive Route Planner & Scenario Simulator**: Interactive From/Destination junction selection, map node picking, and counterfactual scenario comparison (`POST /api/v1/simulations/compare`) displaying Baseline vs Partial Slowdown vs Full Closure routes with automatic `ROBUST_ALTERNATIVE` vs `EVIDENCE_SENSITIVE` classification.
+- **Temporal Replay Controls**: Global simulation clock (`?at=ISO_TIMESTAMP`) with one-click presets for Corridor Peak Incident, Baseline Free-Flow, and Post-Incident Outcome Evaluation.
+- **Citizen Report & Evidence Intake**: Form submitting incident reports (`POST /api/v1/reports`) and uploading photo evidence (`POST /api/v1/reports/{id}/evidence`).
+- **Operator Review & Verification Console**: Authorized incident review modal sending `X-Reviewer-Role` and `X-Reviewer-Token` headers to verify, reject, or investigate episodes with an audit trail.
+- **Speed Forecasting & Uncertainty**: Recharts speed curve vs persistence/median predictions with confidence intervals and explicit abstention explanations.
+- **Road Memory & Inspection Priorities**: 0–100 rubric priority rankings (`GET /api/v1/memory/priority`).
+- **Empirical Accuracy Evaluations**: Backtested MAE and RMSE charts for 15-minute and 30-minute horizons.
+
+### Running the Frontend Locally:
+```bash
+cd apps/web
+bun install
+bun run dev
+```
+Open `http://localhost:5173` in your browser.
+
+### Building & Testing the Frontend:
+```bash
+cd apps/web
+bun run tsc -b       # Type check (0 errors)
+bun test            # Unit tests (8 passed)
+bun run vite build  # Production bundle build
+```
+
+---
+
+## 10. Next Implementation Steps (Phase 5)
+
+With Phase 1, Phase 2, Phase 3, and Phase 4 complete and verified:
+- **Phase 5**: End-to-End System Integration Testing, presentation demo script, and final submission packaging for NEXATHON 2026.

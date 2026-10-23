@@ -1,122 +1,117 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import { ThemeProvider } from './context/ThemeContext';
+import { ReplayProvider } from './context/ReplayContext';
+import { RouteProvider, useRoute } from './context/RouteContext';
+import { Sidebar, type ActiveTab } from './components/layout/Sidebar';
+import { Topbar } from './components/layout/Topbar';
+import { MapView } from './components/map/MapView';
+import { RoutePlanner } from './components/planner/RoutePlanner';
+import { ScenarioComparison } from './components/planner/ScenarioComparison';
+import { ReportForm } from './components/incidents/ReportForm';
+import { IncidentList } from './components/incidents/IncidentList';
+import { ForecastView } from './components/forecasting/ForecastView';
+import { MemoryPriorityView } from './components/memory/MemoryPriorityView';
+import { EvaluationView } from './components/evaluations/EvaluationView';
+import { DashboardOverview } from './components/dashboard/DashboardOverview';
+import { SettingsView } from './components/settings/SettingsView';
 
-function App() {
-  const [count, setCount] = useState(0)
+const MainAppLayout: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [mobileOpen, setMobileOpen] = useState<boolean>(false);
+  const { activeSimulation } = useRoute();
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+    <div className="app-container">
+      {/* Navigation Sidebar */}
+      <Sidebar
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        mobileOpen={mobileOpen}
+        onCloseMobile={() => setMobileOpen(false)}
+      />
+
+      {/* Main Content Area */}
+      <div className="main-content">
+        <Topbar
+          activeTab={activeTab}
+          onOpenMobile={() => setMobileOpen(true)}
+        />
+
+        <main
+          className="workspace-area"
+          style={{
+            padding: activeTab === 'map' ? '0' : '20px',
+            overflow: activeTab === 'map' ? 'hidden' : 'auto',
+          }}
         >
-          Count is {count}
-        </button>
-      </section>
+          {activeTab === 'dashboard' && (
+            <DashboardOverview onNavigate={setActiveTab} />
+          )}
 
-      <div className="ticks"></div>
+          {activeTab === 'map' && (
+            <MapView />
+          )}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          {activeTab === 'planner' && (
+            <div style={{ maxWidth: '1100px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+                <RoutePlanner />
+                <div className="card" style={{ padding: 0, overflow: 'hidden', height: '360px', position: 'relative' }}>
+                  <MapView />
+                </div>
+              </div>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+              {activeSimulation && (
+                <ScenarioComparison simulation={activeSimulation} />
+              )}
+            </div>
+          )}
+
+          {activeTab === 'report' && (
+            <ReportForm onSuccess={() => setActiveTab('incidents')} />
+          )}
+
+          {activeTab === 'incidents' && (
+            <IncidentList
+              onOpenReportForm={() => setActiveTab('report')}
+              onNavigateToMap={() => setActiveTab('map')}
+            />
+          )}
+
+          {activeTab === 'forecasting' && (
+            <ForecastView />
+          )}
+
+          {activeTab === 'memory' && (
+            <MemoryPriorityView onNavigateToMap={() => setActiveTab('map')} />
+          )}
+
+          {activeTab === 'evaluations' && (
+            <EvaluationView />
+          )}
+
+          {activeTab === 'settings' && (
+            <SettingsView />
+          )}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export function App() {
+  return (
+    <ThemeProvider>
+      <ReplayProvider>
+        <RouteProvider>
+          <MainAppLayout />
+        </RouteProvider>
+      </ReplayProvider>
+    </ThemeProvider>
+  );
 }
 
-export default App
+export default App;
