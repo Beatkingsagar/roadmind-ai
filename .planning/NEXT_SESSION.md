@@ -1,63 +1,58 @@
 # RoadMind AI — Next Session Continuation Guide
 
-## Checkpoint Status at Close of Day
-- **Current Phase**: Phase 2 Completed & Verified. Ready to begin Phase 3.
-- **Test Baseline**: **57 / 57 unit tests passing** (2.42s). Zero regressions.
-- **Database**: SQLite schema and deterministic fixtures verified via idempotent seeder.
-- **Domain Services**: All 5 domain services (Evidence, Router, Recommendation, Forecasting, Memory) are implemented, pure, testable, and deterministic.
+## Checkpoint Status at Close of Phase 3
+- **Current Phase**: Phase 3 (FastAPI Backend, Persistence, Replay, and Integration Testing) is **100% Completed & Verified**.
+- **Test Baseline**: **73 / 73 tests passing** (57 Unit Tests + 16 Integration Tests, 0 failures, 0 regressions).
+- **Backend**: FastAPI REST API fully wired, mounted under `/api/v1` and `/api/health`.
+- **Database & Persistence**: SQLite tables safely created on startup; reports, evidence, reviews, simulations, and recommendations persisted with ACID guarantees and tested across application restarts.
+- **Security Boundaries**: Server-side SHA-256 evidence hashing, idempotency protection (HTTP 409 on conflict), and reviewer authorization boundary (`X-Reviewer-Role` / `X-Reviewer-Token` header check) enforced.
+- **Next Phase**: **Phase 4: Interactive Frontend Dashboard & Scenario Simulation UI**.
 
 ---
 
-## Continuation Checklist for Tomorrow
+## Continuation Checklist for Phase 4
 
 ### Step 1: Verification Upon Reopening (2 minutes)
-Before writing any new code tomorrow, verify the environment and baseline tests:
+Verify the environment and existing 73 passing tests:
 ```bash
-python -c "import sys; sys.path.insert(0, '.python_packages'); sys.path.insert(0, '.'); import pytest; sys.exit(pytest.main(['tests/unit', '-p', 'no:cacheprovider', '-v']))"
+python -c "import sys; sys.path.insert(0, '.python_packages'); sys.path.insert(0, '.'); import pytest; sys.exit(pytest.main(['tests', '-p', 'no:cacheprovider', '-v']))"
 ```
-*Expected: 57 passed in ~2.5 seconds.*
+*Expected: 73 passed in ~4.0 seconds.*
 
 ---
 
-### Step 2: Phase 3 Implementation (FastAPI HTTP Routers & Endpoints)
-Phase 3 exposes the Phase 2 domain services via REST API:
-
-#### 1. FastAPI App Factory & Middleware (`backend/app/main.py`)
-- CORS middleware for frontend connection.
-- Standard error handlers mapping domain exceptions to `ErrorResponse`.
-- Lifespan handler initializing SQLite database on startup if absent.
-
-#### 2. REST Endpoints to Implement (`backend/app/api/`)
-- [ ] `GET /api/v1/network/geojson`: Returns `FeatureCollection` with all road segments and metadata.
-- [ ] `GET /api/v1/network/segments`: List road segments with current speeds, free-flow speeds, and congestion ratios.
-- [ ] `GET /api/v1/replay/state`: Accepts `?replay_time=ISO_TIMESTAMP`; returns eligible observations, active reports, and episode states using `backend.app.services.replay.filter`.
-- [ ] `POST /api/v1/evidence/upload`: Form/JSON endpoint accepting report data + binary media; calculates server-side SHA-256, checks duplicates, groups shared sources, and returns structured `EvidenceAssessmentResult`.
-- [ ] `POST /api/v1/simulation/route`: Accepts `origin`, `destination`, and optional scenario overrides; returns `RouteAlternative` with exact edge sequence.
-- [ ] `POST /api/v1/simulation/recommend`: Accepts `origin`, `destination`, and `incident_segment_id`; runs baseline, slowdown, and closure scenarios, returning `SimulationRunResponse` with sensitivity classification (`ROBUST_ALTERNATIVE`, `EVIDENCE_SENSITIVE`, etc.).
-- [ ] `GET /api/v1/forecasting/predict`: Accepts `segment_id`, `issue_time`, `horizon_minutes` (15 or 30), and `model_type` (`persistence` or `historical_median`); returns `PredictionResponse` with prediction interval or explicit abstention reason.
-- [ ] `GET /api/v1/forecasting/evaluate`: Chronological evaluation endpoint returning `EvaluationSummary` (MAE, RMSE, interval coverage) across eligible actuals.
-- [ ] `GET /api/v1/memory/inspection-priority`: Returns ranked segments by inspection priority (`inspection_v1.0`) with observation coverage warnings.
-- [ ] `POST /api/v1/admin/seed`: Endpoint to re-seed or reset database for deterministic operator demos.
-
-#### 3. Integration Tests (`tests/integration/test_api_endpoints.py`)
-- Test each endpoint using `fastapi.testclient.TestClient`.
-- Verify replay temporal filtering over HTTP: observations with `available_at > replay_time` must NOT appear.
-- Verify duplicate upload via API correctly flags `is_duplicate` and returns assessment without score inflation.
-- Verify recommendation endpoint returns expected sensitivity classification.
-
----
-
-### Step 3: Server Verification Command
-Once Phase 3 routers are wired:
+### Step 2: Start Backend Server
 ```bash
 python -c "import sys; sys.path.insert(0, '.python_packages'); sys.path.insert(0, '.'); import uvicorn; uvicorn.run('backend.app.main:app', host='127.0.0.1', port=8000, reload=True)"
 ```
-Test health check at `http://127.0.0.1:8000/docs` (Swagger UI).
+Test health check at `http://127.0.0.1:8000/api/health` and Swagger UI at `http://127.0.0.1:8000/docs`.
 
 ---
 
-## Strict Constraints for Next Session
-1. **Do not start Phase 4 / Frontend** until Phase 3 HTTP endpoints and integration tests are verified.
-2. **Preserve deterministic fixtures** and data contracts (`data/fixtures/synthetic_network.geojson`, `seed_fixtures.json`).
-3. **Never represent heuristic scores as event probabilities**.
-4. **Never leak future observations during temporal replays**.
+### Step 3: Phase 4 Scope (Interactive Frontend Dashboard)
+Build the user-facing web interface connecting to the verified `/api/v1` backend:
+1. **Interactive Map View**:
+   - Render vector road network (`GET /api/v1/network`).
+   - Color code road segments by congestion ratio (`GET /api/v1/road-state`).
+   - Display active incident markers with severity badges (`GET /api/v1/incidents`).
+2. **Temporal Replay Slider**:
+   - Time-travel control driving `?at=ISO_TIMESTAMP` parameter across map, road state, and incidents.
+3. **Scenario Simulation Control Panel**:
+   - Origin/destination selector.
+   - Run assumption sensitivity comparison (`POST /api/v1/simulations/compare`).
+   - Display 3-way route overlay (Baseline vs Slowdown vs Closure) with travel-time delta and `ROBUST_ALTERNATIVE` vs `EVIDENCE_SENSITIVE` explanation badge.
+4. **Citizen Report & Evidence Intake Modal**:
+   - Form for citizen submission (`POST /api/v1/reports`).
+   - Image upload with client-side preview (`POST /api/v1/reports/{id}/evidence`).
+5. **Operator Review & Inspection Priority Panel**:
+   - Authorized reviewer toggle (sending `X-Reviewer-Role: traffic_operator`).
+   - Verification action buttons (Verify, Reject, Investigate) with audit trail.
+   - Ranked inspection priority list with transparent score breakdowns (`GET /api/v1/memory/priority`).
+
+---
+
+## Strict Constraints for Phase 4
+1. **Do not modify Phase 1, Phase 2, or Phase 3 contracts** unless explicitly approved.
+2. **Always respect temporal replay**: frontend must pass current slider timestamp `?at=...` to ensure future data is not revealed.
+3. **Never represent heuristic scores as incident probabilities**.
+4. **Do not claim citywide real-time traffic predictions**; use the honest baseline labels (`persistence_baseline_v1`, `historical_median_v1`).

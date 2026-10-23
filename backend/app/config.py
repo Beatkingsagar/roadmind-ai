@@ -44,6 +44,13 @@ class Settings(BaseModel):
     graph_version: str = "v1.0.0"
     data_mode: str = "synthetic"
 
+    # API and Operator Security Settings
+    api_prefix: str = "/api/v1"
+    operator_token: str = Field(
+        default_factory=lambda: os.getenv("ROADMIND_OPERATOR_TOKEN", "traffic_operator_secret_2026")
+    )
+    cors_origins: list[str] = ["*"]
+
     def ensure_directories(self) -> None:
         """Create required storage and data directories if they do not exist."""
         self.evidence_storage_dir.mkdir(parents=True, exist_ok=True)
