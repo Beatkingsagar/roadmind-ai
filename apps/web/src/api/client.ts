@@ -24,7 +24,12 @@ import type {
   PlaceSearchResponse,
   RealRouteRequest,
   RealRouteResponse,
+  JourneyBudgetRequest,
+  JourneyBudgetResponse,
+  TollEstimate,
+  TollStatusResponse,
 } from './types';
+
 
 export const DEFAULT_API_BASE = 'http://127.0.0.1:8000';
 export const DEFAULT_OPERATOR_TOKEN = 'traffic_operator_secret_2026';
@@ -297,6 +302,32 @@ class RoadMindApiClient {
       body: JSON.stringify(req),
     });
   }
+
+  // Journey Budget, Fuel Cost, and Tolls (Phase 5)
+  async calculateJourneyBudget(req: JourneyBudgetRequest): Promise<JourneyBudgetResponse> {
+    return this.request<JourneyBudgetResponse>('/api/v1/real-map/budget', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async estimateRouteToll(req: {
+    route_distance_km?: number;
+    encoded_polyline?: string;
+    route_geometry?: Record<string, unknown>;
+    vehicle_type?: string;
+    is_round_trip?: boolean;
+  }): Promise<TollEstimate> {
+    return this.request<TollEstimate>('/api/v1/real-map/toll', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
+  }
+
+  async getTollStatus(): Promise<TollStatusResponse> {
+    return this.request<TollStatusResponse>('/api/v1/real-map/toll/status');
+  }
 }
 
 export const api = new RoadMindApiClient();
+

@@ -165,25 +165,58 @@ export const MANGALURU_LANDMARKS: RealLandmark[] = [
 ];
 
 export const TILE_PROVIDERS = {
+  osmStandard: {
+    name: 'OpenStreetMap Standard',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+    subdomains: ['a', 'b', 'c'],
+    maxZoom: 19,
+  },
+  osmFallback: {
+    name: 'OpenStreetMap Humanitarian (Fallback)',
+    url: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank" rel="noopener noreferrer">HOT</a>',
+    subdomains: ['a', 'b', 'c'],
+    maxZoom: 19,
+  },
   cartoVoyager: {
+    name: 'CARTO Voyager (Key Required)',
     url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: ['a', 'b', 'c', 'd'],
     maxZoom: 19,
   },
   cartoDarkMatter: {
+    name: 'CARTO Dark Matter (Key Required)',
     url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: ['a', 'b', 'c', 'd'],
     maxZoom: 19,
   },
-  osmStandard: {
-    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    subdomains: ['a', 'b', 'c'],
-    maxZoom: 19,
-  },
 };
+
+/**
+ * Returns the active Leaflet tile provider.
+ * Uses public OpenStreetMap Standard by default (no API key required).
+ * Dark mode styling is automatically applied to OSM tiles via CSS filter.
+ * If an explicit CARTO key is provided in VITE_CARTO_API_KEY, switches to CARTO raster tiles.
+ */
+export function getActiveTileProvider(theme: 'light' | 'dark', cartoApiKey?: string) {
+  if (cartoApiKey && cartoApiKey.trim()) {
+    const keyParam = `?api_key=${encodeURIComponent(cartoApiKey.trim())}`;
+    const base = theme === 'dark' ? TILE_PROVIDERS.cartoDarkMatter : TILE_PROVIDERS.cartoVoyager;
+    return {
+      ...base,
+      url: `${base.url}${keyParam}`,
+    };
+  }
+
+  return TILE_PROVIDERS.osmStandard;
+}
 
 
 export const CONGESTION_COLORS = {
@@ -220,3 +253,87 @@ export function isValidCoordinate(lat: number, lon: number): boolean {
     lon <= 180.0
   );
 }
+
+// ============================================================================
+// Phase 5: Vehicle & Fuel Presets (Karnataka / India regional benchmarks)
+// ============================================================================
+
+export interface VehiclePreset {
+  id: 'motorcycle' | 'car' | 'suv' | 'custom';
+  label: string;
+  defaultEfficiency: number; // km per unit
+  icon: string;
+  description: string;
+}
+
+export const VEHICLE_PRESETS: VehiclePreset[] = [
+  {
+    id: 'motorcycle',
+    label: 'Motorcycle / Two-Wheeler',
+    defaultEfficiency: 45.0,
+    icon: 'bike',
+    description: 'High mileage (~40–50 km/L)',
+  },
+  {
+    id: 'car',
+    label: 'Car / Hatchback / Sedan',
+    defaultEfficiency: 15.0,
+    icon: 'car',
+    description: 'Standard mileage (~14–18 km/L)',
+  },
+  {
+    id: 'suv',
+    label: 'SUV / MUV / Compact Truck',
+    defaultEfficiency: 12.0,
+    icon: 'truck',
+    description: 'Heavy vehicle (~10–13 km/L)',
+  },
+  {
+    id: 'custom',
+    label: 'Custom Vehicle',
+    defaultEfficiency: 15.0,
+    icon: 'sliders',
+    description: 'User-specified mileage & label',
+  },
+];
+
+export interface FuelPreset {
+  id: 'petrol' | 'diesel' | 'cng' | 'ev' | 'other';
+  label: string;
+  unit: string;
+  defaultPrice: number; // ₹ per unit (Karnataka current retail benchmark)
+}
+
+export const FUEL_PRESETS: FuelPreset[] = [
+  {
+    id: 'petrol',
+    label: 'Petrol',
+    unit: 'L',
+    defaultPrice: 103.50,
+  },
+  {
+    id: 'diesel',
+    label: 'Diesel',
+    unit: 'L',
+    defaultPrice: 89.50,
+  },
+  {
+    id: 'cng',
+    label: 'CNG',
+    unit: 'kg',
+    defaultPrice: 85.00,
+  },
+  {
+    id: 'ev',
+    label: 'EV (Electric)',
+    unit: 'kWh',
+    defaultPrice: 8.50,
+  },
+  {
+    id: 'other',
+    label: 'Other',
+    unit: 'unit',
+    defaultPrice: 100.00,
+  },
+];
+

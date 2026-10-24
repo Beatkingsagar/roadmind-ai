@@ -49,12 +49,60 @@ class Settings(BaseModel):
     operator_token: str = Field(
         default_factory=lambda: os.getenv("ROADMIND_OPERATOR_TOKEN", "traffic_operator_secret_2026")
     )
-    cors_origins: list[str] = ["*"]
+    cors_origins: list[str] = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "*",
+    ]
 
-    # External Provider URLs
+    # External Provider URLs & Credentials
     osrm_routing_url: str = Field(
         default_factory=lambda: os.getenv("OSRM_ROUTING_URL", "https://router.project-osrm.org")
     )
+    # Traffic Provider Settings (Phase 4)
+    traffic_provider: str = Field(
+        default_factory=lambda: os.getenv("TRAFFIC_PROVIDER", "auto")
+    )
+    tomtom_api_key: str | None = Field(
+        default_factory=lambda: os.getenv("TOMTOM_API_KEY", None)
+    )
+    here_api_key: str | None = Field(
+        default_factory=lambda: os.getenv("HERE_API_KEY", None)
+    )
+    traffic_cache_ttl_seconds: int = Field(
+        default_factory=lambda: int(os.getenv("TRAFFIC_CACHE_TTL_SECONDS", "180"))
+    )
+    tomtom_routing_url: str = Field(
+        default_factory=lambda: os.getenv(
+            "TOMTOM_ROUTING_URL", "https://api.tomtom.com/routing/1/calculateRoute"
+        )
+    )
+    tomtom_flow_url: str = Field(
+        default_factory=lambda: os.getenv(
+            "TOMTOM_FLOW_URL", "https://api.tomtom.com/traffic/services/4/flowSegmentData"
+        )
+    )
+    here_routing_url: str = Field(
+        default_factory=lambda: os.getenv(
+            "HERE_ROUTING_URL", "https://router.hereapi.com/v8/routes"
+        )
+    )
+
+    # Toll Provider Settings (Phase 5)
+    toll_provider: str = Field(
+        default_factory=lambda: os.getenv("TOLL_PROVIDER", "auto")
+    )
+    tollguru_api_key: str | None = Field(
+        default_factory=lambda: os.getenv("TOLLGURU_API_KEY", None)
+    )
+    tollguru_api_url: str = Field(
+        default_factory=lambda: os.getenv(
+            "TOLLGURU_API_URL", "https://apis.tollguru.com/v2/calc-polyline"
+        )
+    )
+
 
     def ensure_directories(self) -> None:
         """Create required storage and data directories if they do not exist."""

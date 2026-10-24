@@ -5,11 +5,19 @@ from __future__ import annotations
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Query, status
 
+from backend.app.schemas.journey_budget import (
+    JourneyBudgetRequest,
+    JourneyBudgetResponse,
+    TollEstimate,
+    TollEstimateRequest,
+    TollStatusResponse,
+)
 from backend.app.schemas.real_map import (
     PlaceSearchResponse,
     RealRouteRequest,
     RealRouteResponse,
 )
+from backend.app.services.budget import journey_budget_service
 from backend.app.services.geocoding import (
     GeocodingProviderError,
     GeocodingRateLimitError,
@@ -25,6 +33,8 @@ from backend.app.services.routing import (
     RoutingTimeoutError,
     real_road_service,
 )
+from backend.app.services.toll import toll_service
+
 
 router = APIRouter(prefix="/real-map", tags=["Real Map Geocoding & Routing"])
 
@@ -155,3 +165,72 @@ def get_real_route(
         alternatives=alternatives,
     )
     return calculate_real_route(payload=request, bypass_cache=bypass_cache)
+
+
+@router.post(
+    "/budget",
+    response_model=JourneyBudgetResponse,
+    summary="Calculate journey fuel costs, toll estimation, and overall budget",
+    description=(
+        "Calculates fuel consumption, one-way and return-trip fuel expenses, "
+        "and toll estimates for a given real-world route distance and vehicle configuration. "
+        "Adheres strictly to the Zero-Fabrication Invariant: if toll data is unavailable, "
+        "returns 'Toll estimate unavailable' without inventing toll plazas or prices."
+    ),
+)
+def calculate_journey_budget(
+    payload: JourneyBudgetRequest,
+) -> JourneyBudgetResponse:
+    """Calculate journey budget and fuel expenses."""
+    try:
+        return journey_budget_service.calculate_budget(payload)
+    except ValueError as val_err:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(val_err),
+        ) from val_err
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unexpected error calculating journey budget.",
+        ) from exc
+
+
+@router.post(
+    "/toll",
+    response_model=TollEstimate,
+    summary="Estimate highway tolls for route corridor",
+    description=(
+        "Queries verified toll intelligence providers for toll plazas along the route. "
+        "Returns 'Toll estimate unavailable' if no provider is configured or data is absent."
+    ),
+)
+def estimate_route_toll(
+    payload: TollEstimateRequest,
+) -> TollEstimate:
+    """Estimate tolls along a road route."""
+    try:
+        return toll_service.estimate_toll(
+            encoded_polyline=payload.encoded_polyline,
+            route_geometry=payload.route_geometry,
+            route_distance_km=payload.route_distance_km,
+            vehicle_type=payload.vehicle_type,
+            is_round_trip=payload.is_round_trip,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unexpected error occurred during toll estimation.",
+        ) from exc
+
+
+@router.get(
+    "/toll/status",
+    response_model=TollStatusResponse,
+    summary="Audit toll data provider readiness and coverage",
+    description="Returns configuration and availability status of external toll providers in Karnataka.",
+)
+def get_toll_status() -> TollStatusResponse:
+    """Get toll provider status and coverage."""
+    return toll_service.get_status()
+

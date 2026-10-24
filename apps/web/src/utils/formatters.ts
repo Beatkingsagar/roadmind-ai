@@ -110,3 +110,150 @@ export function getOutcomeBadgeProps(outcome: string | undefined): {
       };
   }
 }
+
+// ============================================================================
+// Phase 5: Currency Formatting & Instantaneous Client Budget Computation
+// ============================================================================
+
+export function formatCurrency(
+  amount: number | null | undefined,
+  currency: string = 'INR'
+): string {
+  if (amount === null || amount === undefined || Number.isNaN(amount)) {
+    return 'Unavailable';
+  }
+  try {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: currency,
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return `₹${amount.toFixed(2)}`;
+  }
+}
+
+export interface ClientBudgetResult {
+  isValid: boolean;
+  errorMessage: string | null;
+  effectiveDistanceKm: number;
+  fuelRequiredUnits: number;
+  oneWayFuelCost: number;
+  returnTripFuelCost: number;
+  activeFuelCost: number;
+  totalCost: number;
+  assumptions: string[];
+}
+
+export function computeClientJourneyBudget(params: {
+  distanceKm: number;
+  fuelEfficiencyKmPerUnit: number;
+  fuelPricePerUnit: number;
+  isRoundTrip: boolean;
+  vehicleLabel: string;
+  fuelType: string;
+  fuelUnit: string;
+  tollAmount: number | null;
+  tollSource?: string;
+  isTollConfirmed?: boolean;
+}): ClientBudgetResult {
+  const {
+    distanceKm,
+    fuelEfficiencyKmPerUnit,
+    fuelPricePerUnit,
+    isRoundTrip,
+    vehicleLabel,
+    fuelType,
+    fuelUnit,
+    tollAmount,
+    tollSource,
+    isTollConfirmed,
+  } = params;
+
+  if (distanceKm <= 0 || !Number.isFinite(distanceKm)) {
+    return {
+      isValid: false,
+      errorMessage: 'Route distance must be greater than 0 km.',
+      effectiveDistanceKm: 0,
+      fuelRequiredUnits: 0,
+      oneWayFuelCost: 0,
+      returnTripFuelCost: 0,
+      activeFuelCost: 0,
+      totalCost: 0,
+      assumptions: [],
+    };
+  }
+
+  if (fuelEfficiencyKmPerUnit <= 0 || !Number.isFinite(fuelEfficiencyKmPerUnit)) {
+    return {
+      isValid: false,
+      errorMessage: 'Fuel efficiency must be a positive number greater than 0.',
+      effectiveDistanceKm: isRoundTrip ? distanceKm * 2 : distanceKm,
+      fuelRequiredUnits: 0,
+      oneWayFuelCost: 0,
+      returnTripFuelCost: 0,
+      activeFuelCost: 0,
+      totalCost: 0,
+      assumptions: [],
+    };
+  }
+
+  if (fuelPricePerUnit < 0 || !Number.isFinite(fuelPricePerUnit)) {
+    return {
+      isValid: false,
+      errorMessage: 'Fuel price cannot be negative.',
+      effectiveDistanceKm: isRoundTrip ? distanceKm * 2 : distanceKm,
+      fuelRequiredUnits: 0,
+      oneWayFuelCost: 0,
+      returnTripFuelCost: 0,
+      activeFuelCost: 0,
+      totalCost: 0,
+      assumptions: [],
+    };
+  }
+
+  const effectiveDistanceKm = Math.round((isRoundTrip ? distanceKm * 2 : distanceKm) * 100) / 100;
+  const oneWayFuel = distanceKm / fuelEfficiencyKmPerUnit;
+  const oneWayCost = Math.round(oneWayFuel * fuelPricePerUnit * 100) / 100;
+
+  const returnTripFuel = (distanceKm * 2) / fuelEfficiencyKmPerUnit;
+  const returnTripCost = Math.round(returnTripFuel * fuelPricePerUnit * 100) / 100;
+
+  const activeFuelRequired = Math.round((isRoundTrip ? returnTripFuel : oneWayFuel) * 100) / 100;
+  const activeFuelCost = isRoundTrip ? returnTripCost : oneWayCost;
+
+  const effectiveToll = tollAmount !== null && Number.isFinite(tollAmount) ? tollAmount : 0;
+  const totalCost = Math.round((activeFuelCost + effectiveToll) * 100) / 100;
+
+  const assumptions: string[] = [
+    `Route distance: ${distanceKm.toFixed(2)} km (from real-world road routing provider)`,
+    isRoundTrip
+      ? `Trip mode: Round-trip (2× distance = ${effectiveDistanceKm.toFixed(2)} km)`
+      : 'Trip mode: One-way journey',
+    `Vehicle: ${vehicleLabel} (${fuelEfficiencyKmPerUnit.toFixed(1)} km/${fuelUnit})`,
+    `Fuel: ${fuelType.toUpperCase()} at ₹${fuelPricePerUnit.toFixed(2)} per ${fuelUnit}`,
+    `Formula: Fuel required (${activeFuelRequired.toFixed(2)} ${fuelUnit}) = Distance (${effectiveDistanceKm.toFixed(2)} km) ÷ Efficiency (${fuelEfficiencyKmPerUnit.toFixed(1)} km/${fuelUnit})`,
+    `Formula: Fuel cost (₹${activeFuelCost.toFixed(2)}) = Fuel required × Fuel price (₹${fuelPricePerUnit.toFixed(2)})`,
+  ];
+
+  if (tollAmount !== null && tollAmount > 0) {
+    const statusText = isTollConfirmed ? 'confirmed published rate' : 'estimated rate';
+    assumptions.push(`Tolls included: ₹${tollAmount.toFixed(2)} (${statusText}) via ${tollSource || 'Toll Provider'}`);
+  } else {
+    assumptions.push('Tolls excluded: Toll estimate unavailable (no verified toll provider configured). Total reflects fuel expenses only.');
+  }
+
+  return {
+    isValid: true,
+    errorMessage: null,
+    effectiveDistanceKm,
+    fuelRequiredUnits: activeFuelRequired,
+    oneWayFuelCost: oneWayCost,
+    returnTripFuelCost: returnTripCost,
+    activeFuelCost,
+    totalCost,
+    assumptions,
+  };
+}
+

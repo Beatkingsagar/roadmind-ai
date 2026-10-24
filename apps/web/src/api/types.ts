@@ -433,3 +433,83 @@ export interface RealRouteResponse {
   traffic_model: string;
   attribution: string;
 }
+
+// ============================================================================
+// Journey Budget, Fuel Cost, and Toll Estimation (Phase 5)
+// ============================================================================
+
+export type VehicleType = 'motorcycle' | 'car' | 'suv' | 'custom';
+export type FuelType = 'petrol' | 'diesel' | 'cng' | 'ev' | 'other';
+export type TollStatus = 'available' | 'unavailable' | 'disabled' | 'error';
+
+export interface TollPlazaInfo {
+  plaza_name: string;
+  road_name?: string;
+  cost: number;
+  currency: string;
+  payment_method: string;
+  is_confirmed: boolean;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface TollEstimate {
+  status: TollStatus;
+  provider: string;
+  total_toll: number | null;
+  currency: string;
+  plazas: TollPlazaInfo[];
+  is_confirmed: boolean;
+  is_estimated: boolean;
+  source: string;
+  message: string;
+}
+
+export interface FuelCostEstimate {
+  fuel_required_units: number;
+  fuel_unit: string;
+  fuel_price_per_unit: number;
+  fuel_efficiency_km_per_unit: number;
+  one_way_fuel_cost: number;
+  return_trip_fuel_cost: number;
+  active_fuel_cost: number;
+  is_round_trip: boolean;
+}
+
+export interface JourneyBudgetRequest {
+  distance_km: number;
+  vehicle_type: VehicleType;
+  custom_vehicle_name?: string;
+  fuel_type: FuelType;
+  fuel_efficiency_km_per_unit: number;
+  fuel_price_per_unit: number;
+  is_round_trip?: boolean;
+  encoded_polyline?: string;
+  route_geometry?: Record<string, unknown>;
+  origin_name?: string;
+  destination_name?: string;
+}
+
+export interface JourneyBudgetResponse {
+  distance_km: number;
+  effective_distance_km: number;
+  is_round_trip: boolean;
+  vehicle_type: string;
+  vehicle_label: string;
+  fuel_type: string;
+  fuel_cost: FuelCostEstimate;
+  toll: TollEstimate;
+  estimated_total_cost: number;
+  total_includes_toll: boolean;
+  currency: string;
+  assumptions: string[];
+}
+
+export interface TollStatusResponse {
+  active_provider: string;
+  is_configured: boolean;
+  is_available: boolean;
+  message: string;
+  supported_regions: string[];
+}
+

@@ -20,5 +20,8 @@ dist/
 
 # Environment & OS
 .env
+.env.local
+.env.*.local
+*.env
 .DS_Store
 Thumbs.db

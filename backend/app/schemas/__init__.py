@@ -64,6 +64,22 @@ from backend.app.schemas.real_map import (
     RealRouteRequest,
     RealRouteResponse,
     RealRouteWaypoint,
+    RealTrafficInfo,
+    RealTrafficSegment,
+    TrafficProviderStatus,
+    TrafficStatusResponse,
+)
+from backend.app.schemas.journey_budget import (
+    FuelCostEstimate,
+    FuelType,
+    JourneyBudgetRequest,
+    JourneyBudgetResponse,
+    TollEstimate,
+    TollEstimateRequest,
+    TollPlazaInfo,
+    TollStatus,
+    TollStatusResponse,
+    VehicleType,
 )
 
 __all__ = [
@@ -114,4 +130,19 @@ __all__ = [
     "RealRouteRequest",
     "RealRouteResponse",
     "RealRouteWaypoint",
+    "RealTrafficInfo",
+    "RealTrafficSegment",
+    "TrafficProviderStatus",
+    "TrafficStatusResponse",
+    "FuelCostEstimate",
+    "FuelType",
+    "JourneyBudgetRequest",
+    "JourneyBudgetResponse",
+    "TollEstimate",
+    "TollEstimateRequest",
+    "TollPlazaInfo",
+    "TollStatus",
+    "TollStatusResponse",
+    "VehicleType",
 ]
+

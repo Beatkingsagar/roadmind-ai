@@ -123,3 +123,10 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 # Mount versioned API routes under /api/v1
 app.include_router(api_v1_router, prefix=settings.api_prefix)
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("backend.app.main:app", host="0.0.0.0", port=8000)
+

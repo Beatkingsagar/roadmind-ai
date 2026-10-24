@@ -18,7 +18,7 @@ import {
   SECTOR_7_DEFAULT_ZOOM,
   MANGALURU_LANDMARKS,
   SUPPORTED_NODES,
-  TILE_PROVIDERS,
+  getActiveTileProvider,
   getCongestionColor,
 } from '../../utils/constants';
 import { formatSpeed } from '../../utils/formatters';
@@ -59,6 +59,7 @@ export const MapView: React.FC = () => {
   const [incidents, setIncidents] = useState<IncidentEpisodeResponse[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [tileError, setTileError] = useState<boolean>(false);
+  const cartoApiKey = import.meta.env.VITE_CARTO_API_KEY as string | undefined;
 
   // Initialize Leaflet Map
   useEffect(() => {
@@ -74,7 +75,7 @@ export const MapView: React.FC = () => {
       attributionControl: true,
     });
 
-    const provider = theme === 'dark' ? TILE_PROVIDERS.cartoDarkMatter : TILE_PROVIDERS.cartoVoyager;
+    const provider = getActiveTileProvider(theme, cartoApiKey);
     const tileLayer = L.tileLayer(provider.url, {
       maxZoom: provider.maxZoom,
       attribution: provider.attribution,
@@ -110,12 +111,12 @@ export const MapView: React.FC = () => {
     };
   }, []); // Run once on mount
 
-  // Update Tile Layer URL when theme changes
+  // Update Tile Layer URL when theme or cartoApiKey changes
   useEffect(() => {
     if (!tileLayerRef.current) return;
-    const provider = theme === 'dark' ? TILE_PROVIDERS.cartoDarkMatter : TILE_PROVIDERS.cartoVoyager;
+    const provider = getActiveTileProvider(theme, cartoApiKey);
     tileLayerRef.current.setUrl(provider.url);
-  }, [theme]);
+  }, [theme, cartoApiKey]);
 
   // Handle smooth flyTo and size invalidation when mapMode changes
   useEffect(() => {
@@ -605,7 +606,7 @@ export const MapView: React.FC = () => {
   const handleRetryTiles = () => {
     if (!tileLayerRef.current) return;
     setTileError(false);
-    const provider = theme === 'dark' ? TILE_PROVIDERS.cartoDarkMatter : TILE_PROVIDERS.cartoVoyager;
+    const provider = getActiveTileProvider(theme, cartoApiKey);
     tileLayerRef.current.setUrl(provider.url);
     tileLayerRef.current.redraw();
   };

@@ -119,6 +119,30 @@ describe('Network and Demo Constants', () => {
 
     expect(TILE_PROVIDERS.cartoVoyager.url).toContain('cartocdn.com');
     expect(TILE_PROVIDERS.cartoDarkMatter.url).toContain('cartocdn.com');
+    expect(TILE_PROVIDERS.osmStandard.url).toContain('tile.openstreetmap.org');
+    expect(TILE_PROVIDERS.osmFallback.url).toContain('openstreetmap.fr');
+  });
+
+  it('provides public OSM basemap by default and supports CARTO key when configured', () => {
+    const { getActiveTileProvider, TILE_PROVIDERS } = require('./constants');
+    
+    // Default: No key provided -> returns public OSM standard without API key
+    const defaultLight = getActiveTileProvider('light');
+    expect(defaultLight.url).toBe(TILE_PROVIDERS.osmStandard.url);
+    expect(defaultLight.attribution).toContain('OpenStreetMap');
+
+    const defaultDark = getActiveTileProvider('dark');
+    expect(defaultDark.url).toBe(TILE_PROVIDERS.osmStandard.url);
+
+    // Optional CARTO key provided -> returns authenticated CARTO tiles
+    const cartoLight = getActiveTileProvider('light', 'test_carto_secret_key');
+    expect(cartoLight.url).toContain('cartocdn.com');
+    expect(cartoLight.url).toContain('api_key=test_carto_secret_key');
+
+    const cartoDark = getActiveTileProvider('dark', 'test_carto_secret_key');
+    expect(cartoDark.url).toContain('cartocdn.com');
+    expect(cartoDark.url).toContain('dark_all');
+    expect(cartoDark.url).toContain('api_key=test_carto_secret_key');
   });
 });
 
@@ -382,3 +406,263 @@ describe('Phase 3: Real-World Road Routing (OSRM & Coastal Karnataka)', () => {
     expect(realRoute.traffic_model).toBe('standard_routability');
   });
 });
+
+describe('Phase 5: Fuel Cost Calculator, Toll Estimation & Journey Budget', () => {
+  const {
+    formatCurrency,
+    computeClientJourneyBudget,
+  } = require('./formatters');
+  const {
+    VEHICLE_PRESETS,
+    FUEL_PRESETS,
+  } = require('./constants');
+
+  it('formats currency in Indian Rupees (INR) correctly', () => {
+    const formatted = formatCurrency(634.11);
+    expect(formatted).toContain('634.11');
+    expect(formatCurrency(0)).toContain('0.00');
+    expect(formatCurrency(null)).toBe('Unavailable');
+    expect(formatCurrency(undefined)).toBe('Unavailable');
+    expect(formatCurrency(NaN)).toBe('Unavailable');
+  });
+
+  it('calculates one-way fuel consumption and costs accurately for Kundapura to Mangaluru', () => {
+    const result = computeClientJourneyBudget({
+      distanceKm: 91.9,
+      fuelEfficiencyKmPerUnit: 15.0,
+      fuelPricePerUnit: 103.50,
+      isRoundTrip: false,
+      vehicleLabel: 'Car / Sedan',
+      fuelType: 'Petrol',
+      fuelUnit: 'L',
+      tollAmount: null,
+    });
+
+    expect(result.isValid).toBe(true);
+    expect(result.errorMessage).toBeNull();
+    expect(result.effectiveDistanceKm).toBe(91.9);
+
+    // Fuel Required = 91.9 / 15.0 = 6.13 L
+    expect(result.fuelRequiredUnits).toBeCloseTo(6.13, 2);
+
+    // Fuel Cost = 6.12666... * 103.50 = 634.11
+    expect(result.oneWayFuelCost).toBe(634.11);
+    expect(result.activeFuelCost).toBe(634.11);
+    expect(result.totalCost).toBe(634.11);
+    expect(result.assumptions.length).toBeGreaterThan(3);
+    expect(result.assumptions[0]).toContain('91.90 km');
+  });
+
+  it('calculates round-trip journey costs by accurately doubling effective distance and fuel expense', () => {
+    const result = computeClientJourneyBudget({
+      distanceKm: 91.9,
+      fuelEfficiencyKmPerUnit: 15.0,
+      fuelPricePerUnit: 103.50,
+      isRoundTrip: true,
+      vehicleLabel: 'Car / Sedan',
+      fuelType: 'Petrol',
+      fuelUnit: 'L',
+      tollAmount: null,
+    });
+
+    expect(result.isValid).toBe(true);
+    expect(result.effectiveDistanceKm).toBe(183.8);
+
+    // Fuel Required = 183.8 / 15.0 = 12.25 L
+    expect(result.fuelRequiredUnits).toBeCloseTo(12.25, 2);
+
+    // Return trip cost = 1268.22
+    expect(result.returnTripFuelCost).toBe(1268.22);
+    expect(result.activeFuelCost).toBe(1268.22);
+    expect(result.totalCost).toBe(1268.22);
+  });
+
+  it('computes fuel costs across different vehicle efficiencies and categories', () => {
+    // 1. Motorcycle (45 km/L)
+    const moto = computeClientJourneyBudget({
+      distanceKm: 90.0,
+      fuelEfficiencyKmPerUnit: 45.0,
+      fuelPricePerUnit: 100.0,
+      isRoundTrip: false,
+      vehicleLabel: 'Motorcycle',
+      fuelType: 'Petrol',
+      fuelUnit: 'L',
+      tollAmount: null,
+    });
+    expect(moto.fuelRequiredUnits).toBe(2.0);
+    expect(moto.activeFuelCost).toBe(200.0);
+
+    // 2. SUV (12 km/L)
+    const suv = computeClientJourneyBudget({
+      distanceKm: 90.0,
+      fuelEfficiencyKmPerUnit: 12.0,
+      fuelPricePerUnit: 100.0,
+      isRoundTrip: false,
+      vehicleLabel: 'SUV',
+      fuelType: 'Diesel',
+      fuelUnit: 'L',
+      tollAmount: null,
+    });
+    expect(suv.fuelRequiredUnits).toBe(7.5);
+    expect(suv.activeFuelCost).toBe(750.0);
+
+    // 3. Custom vehicle
+    const custom = computeClientJourneyBudget({
+      distanceKm: 90.0,
+      fuelEfficiencyKmPerUnit: 18.0,
+      fuelPricePerUnit: 100.0,
+      isRoundTrip: false,
+      vehicleLabel: 'Custom Hybrid',
+      fuelType: 'Petrol',
+      fuelUnit: 'L',
+      tollAmount: null,
+    });
+    expect(custom.fuelRequiredUnits).toBe(5.0);
+    expect(custom.activeFuelCost).toBe(500.0);
+  });
+
+  it('validates invalid inputs and zero values with informative error messages', () => {
+    // Zero efficiency
+    const zeroEff = computeClientJourneyBudget({
+      distanceKm: 91.9,
+      fuelEfficiencyKmPerUnit: 0,
+      fuelPricePerUnit: 103.50,
+      isRoundTrip: false,
+      vehicleLabel: 'Car',
+      fuelType: 'Petrol',
+      fuelUnit: 'L',
+      tollAmount: null,
+    });
+    expect(zeroEff.isValid).toBe(false);
+    expect(zeroEff.errorMessage).toContain('Fuel efficiency must be a positive number');
+
+    // Negative efficiency
+    const negEff = computeClientJourneyBudget({
+      distanceKm: 91.9,
+      fuelEfficiencyKmPerUnit: -10,
+      fuelPricePerUnit: 103.50,
+      isRoundTrip: false,
+      vehicleLabel: 'Car',
+      fuelType: 'Petrol',
+      fuelUnit: 'L',
+      tollAmount: null,
+    });
+    expect(negEff.isValid).toBe(false);
+    expect(negEff.errorMessage).toContain('Fuel efficiency must be a positive number');
+
+    // Negative price
+    const negPrice = computeClientJourneyBudget({
+      distanceKm: 91.9,
+      fuelEfficiencyKmPerUnit: 15.0,
+      fuelPricePerUnit: -20,
+      isRoundTrip: false,
+      vehicleLabel: 'Car',
+      fuelType: 'Petrol',
+      fuelUnit: 'L',
+      tollAmount: null,
+    });
+    expect(negPrice.isValid).toBe(false);
+    expect(negPrice.errorMessage).toContain('Fuel price cannot be negative');
+
+    // Zero distance
+    const zeroDist = computeClientJourneyBudget({
+      distanceKm: 0,
+      fuelEfficiencyKmPerUnit: 15.0,
+      fuelPricePerUnit: 100,
+      isRoundTrip: false,
+      vehicleLabel: 'Car',
+      fuelType: 'Petrol',
+      fuelUnit: 'L',
+      tollAmount: null,
+    });
+    expect(zeroDist.isValid).toBe(false);
+    expect(zeroDist.errorMessage).toContain('Route distance must be greater than 0');
+  });
+
+  it('updates estimated journey budget dynamically when route changes', () => {
+    const primaryDistance = 91.9; // Kundapura to Mangaluru via NH 66
+    const altDistance = 99.4;     // Alternative via State Highway
+
+    const primaryBudget = computeClientJourneyBudget({
+      distanceKm: primaryDistance,
+      fuelEfficiencyKmPerUnit: 15.0,
+      fuelPricePerUnit: 100.0,
+      isRoundTrip: false,
+      vehicleLabel: 'Car',
+      fuelType: 'Petrol',
+      fuelUnit: 'L',
+      tollAmount: null,
+    });
+
+    const altBudget = computeClientJourneyBudget({
+      distanceKm: altDistance,
+      fuelEfficiencyKmPerUnit: 15.0,
+      fuelPricePerUnit: 100.0,
+      isRoundTrip: false,
+      vehicleLabel: 'Car',
+      fuelType: 'Petrol',
+      fuelUnit: 'L',
+      tollAmount: null,
+    });
+
+    expect(primaryBudget.activeFuelCost).toBe(612.67);
+    expect(altBudget.activeFuelCost).toBe(662.67);
+    expect(altBudget.activeFuelCost).toBeGreaterThan(primaryBudget.activeFuelCost);
+  });
+
+  it('preserves Zero-Fabrication Invariant for toll estimation', () => {
+    // When toll amount is null / unavailable:
+    const noToll = computeClientJourneyBudget({
+      distanceKm: 91.9,
+      fuelEfficiencyKmPerUnit: 15.0,
+      fuelPricePerUnit: 100.0,
+      isRoundTrip: false,
+      vehicleLabel: 'Car',
+      fuelType: 'Petrol',
+      fuelUnit: 'L',
+      tollAmount: null,
+    });
+
+    expect(noToll.totalCost).toBe(noToll.activeFuelCost);
+    const assumptionStr = noToll.assumptions.join(' ');
+    expect(assumptionStr).toContain('Tolls excluded: Toll estimate unavailable');
+
+    // When toll amount is confirmed:
+    const withToll = computeClientJourneyBudget({
+      distanceKm: 91.9,
+      fuelEfficiencyKmPerUnit: 15.0,
+      fuelPricePerUnit: 100.0,
+      isRoundTrip: false,
+      vehicleLabel: 'Car',
+      fuelType: 'Petrol',
+      fuelUnit: 'L',
+      tollAmount: 125.0,
+      tollSource: 'TollGuru India API',
+      isTollConfirmed: true,
+    });
+
+    expect(withToll.totalCost).toBe(612.67 + 125.0);
+    const withTollStr = withToll.assumptions.join(' ');
+    expect(withTollStr).toContain('Tolls included: ₹125.00 (confirmed published rate)');
+  });
+
+  it('defines vehicle and fuel presets with authentic regional defaults for Karnataka', () => {
+    expect(VEHICLE_PRESETS.length).toBe(4);
+    const vehicleIds = VEHICLE_PRESETS.map((v: { id: string }) => v.id);
+    expect(vehicleIds).toContain('motorcycle');
+    expect(vehicleIds).toContain('car');
+    expect(vehicleIds).toContain('suv');
+    expect(vehicleIds).toContain('custom');
+
+    expect(FUEL_PRESETS.length).toBe(5);
+    const fuelIds = FUEL_PRESETS.map((f: { id: string }) => f.id);
+    expect(fuelIds).toContain('petrol');
+    expect(fuelIds).toContain('diesel');
+    expect(fuelIds).toContain('cng');
+    expect(fuelIds).toContain('ev');
+
+    const petrol = FUEL_PRESETS.find((f: { id: string }) => f.id === 'petrol');
+    expect(petrol.defaultPrice).toBeCloseTo(103.50, 1);
+  });
+});
+

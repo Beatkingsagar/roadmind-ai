@@ -14,6 +14,8 @@ import { useRoute } from '../../context/RouteContext';
 import { SUPPORTED_NODES } from '../../utils/constants';
 import { formatDistance, formatHoursAndMinutes } from '../../utils/formatters';
 import { PlaceSearchInput } from './PlaceSearchInput';
+import { JourneyBudgetCalculator } from './JourneyBudgetCalculator';
+
 
 export const RoutePlanner: React.FC = () => {
   const {
@@ -492,6 +494,15 @@ export const RoutePlanner: React.FC = () => {
                       <strong style={{ color: '#38bdf8' }}>Notice:</strong> Standard road network routability estimate ({realRouteResponse.traffic_model}). Does not reflect live traffic conditions or synthetic scenario overrides.
                     </div>
 
+                    {/* Phase 5: Journey Budget, Fuel Cost & Toll Estimation */}
+                    <JourneyBudgetCalculator
+                      distanceKm={activeRoute.distance_km}
+                      routeSummary={activeRoute.summary}
+                      routeGeometry={activeRoute.geometry}
+                      originName={realOrigin?.name}
+                      destinationName={realDestination?.name}
+                    />
+
                     {/* Attribution */}
                     <div style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'right' }}>
                       {realRouteResponse.attribution}
@@ -499,6 +510,7 @@ export const RoutePlanner: React.FC = () => {
                   </>
                 );
               })()}
+
             </div>
           )}
         </div>
