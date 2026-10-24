@@ -1,0 +1,7 @@
+﻿fastapi
+uvicorn
+sqlalchemy
+pydantic>=2
+httpx
+networkx
+python-multipart
